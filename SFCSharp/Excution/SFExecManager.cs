@@ -13,7 +13,12 @@ namespace SFCSharp.Excution
 
         INamespaceHandler sfExecHandler;
 
-        public static void Exec(string method, Action<object> execCallback, params object[] args)
+        public static void ExecWrapper(string method, Action<object> execCallback, object[] args)
+        {
+            Exec(method, execCallback, args);
+        }
+
+        private static void Exec(string method, Action<object> execCallback, params object[] args)
         {
             if (instance == null)
             {
