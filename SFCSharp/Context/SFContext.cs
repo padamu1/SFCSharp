@@ -16,9 +16,8 @@ namespace SFCSharp.Context
             this.contextNamespace = contextNamespace;
         }
 
-        HashSet<string> privateMethods = new HashSet<string>();
-        HashSet<string> publicMethods = new HashSet<string>();
-
+        Dictionary<string, ISFMethod> privateMethodDic = new Dictionary<string, ISFMethod>();
+        Dictionary<string, ISFMethod> publicMethodDic = new Dictionary<string, ISFMethod>();
         Dictionary<string, ISFVariable> publicVariableDic = new Dictionary<string, ISFVariable>();
         Dictionary<string, ISFVariable> privateVariableDic = new Dictionary<string, ISFVariable>();
 

@@ -4,11 +4,11 @@ namespace SFCSharp.Context
 {
     public class SFVariable<T> : ISFVariable
     {
-        private readonly T value;
+        private T value;
 
-        public SFVariable(T value)
+        public SFVariable()
         {
-            this.value = value;
+            value = default(T);
         }
 
         public Type GetValueType()
@@ -19,6 +19,11 @@ namespace SFCSharp.Context
         public object GetValue()
         {
             return value;
+        }
+
+        public void SetValue(T t)
+        {
+            value = t;
         }
     }
 }

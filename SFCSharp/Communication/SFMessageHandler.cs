@@ -1,6 +1,6 @@
 ﻿namespace SFCSharp.Communication
 {
-    public class MessageHandler
+    public class SFMessageHandler
     {
     }
 }
