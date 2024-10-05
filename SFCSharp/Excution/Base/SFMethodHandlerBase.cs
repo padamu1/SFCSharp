@@ -5,32 +5,36 @@ using System.Text;
 
 namespace SFCSharp.Excution.Base
 {
-    public abstract class SFMethodHandlerBase : INamespaceHandler
+    public abstract class SFMethodHandlerBase : SFNamespaceHandlerBase
     {
-        protected Dictionary<string, IMehtodHandler> _methodHandlerDic;
+        protected Dictionary<string, IMethodHandler> _methodHandlerDic;
 
-        public SFMethodHandlerBase()
+        public SFMethodHandlerBase() : base()
         {
-            InitExecHandler(ref _methodHandlerDic);
+            InitMethodHandler(ref _methodHandlerDic);
         }
 
-        public abstract void InitExecHandler(ref Dictionary<string, IMehtodHandler> _methodHandlerDic);
+        protected abstract void InitMethodHandler(ref Dictionary<string, IMethodHandler> _methodHandlerDic);
 
-        public void Exec(string[] methodNames, Action<object> execCallback, int offset, params object[] args)
+        public override bool Exec(string[] methodNames, Action<object> execCallback, int offset, params object[] args)
         {
+            if(base.Exec(methodNames, execCallback, offset, args))
+            {
+                return true;
+            }
+
             if (_methodHandlerDic == null)
             {
-                Logger.Error("_methodHandlerDic is null");
-                return;
+                return false;
             }
 
             if (_methodHandlerDic.ContainsKey(methodNames[offset]))
             {
                 _methodHandlerDic[methodNames[offset]].Excute(execCallback, args);
-                return;
+                return true;
             }
 
-            Logger.Error($"{string.Join(',', methodNames)} method not exist");
+            return false;
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 
 namespace SFCSharp.Analyzer
 {
@@ -11,8 +10,6 @@ namespace SFCSharp.Analyzer
             int paramStart = script.IndexOf('(');
 
             method = script.Substring(0, paramStart);
-
-            Console.WriteLine(method);
 
             script = script.Remove(0, paramStart + 1);
 
@@ -27,7 +24,7 @@ namespace SFCSharp.Analyzer
         {
             List<object> param = new List<object>();
 
-            while(script.Length > 0)
+            while (script.Length > 0)
             {
                 char character = script[0];
 
@@ -35,7 +32,7 @@ namespace SFCSharp.Analyzer
                 if (character == '"')
                 {
                     int index = 0;
-                    while(true)
+                    while (true)
                     {
                         if (script[index] == '"')
                         {

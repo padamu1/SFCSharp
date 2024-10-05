@@ -1,9 +1,8 @@
-﻿using SFCSharp.Utils;
-using System;
+﻿using System;
 
-namespace SFCSharp.Excution.SystemExec.SystemConsole
+namespace SFCSharp.Excution.SystemExec.SystemConsole.SystemConsoleError
 {
-    public class SFExecSC : IMethodHandler
+    public class SFExecSCEW : IMethodHandler
     {
         public void Excute(Action<object> execCallback, params object[] param)
         {
@@ -15,12 +14,12 @@ namespace SFCSharp.Excution.SystemExec.SystemConsole
 
             if (param.Length == 1)
             {
-                System.Console.WriteLine(param[0].ToString());
+                System.Console.Error.WriteLine(param[0].ToString());
                 execCallback?.Invoke(null);
                 return;
             }
 
-            System.Console.WriteLine(param.ToString());
+            System.Console.Error.WriteLine(param.ToString());
             execCallback?.Invoke(null);
         }
     }

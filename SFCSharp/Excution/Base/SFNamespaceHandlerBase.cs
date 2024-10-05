@@ -10,26 +10,25 @@ namespace SFCSharp.Excution.Base
 
         public SFNamespaceHandlerBase()
         {
-            InitExecHandler(ref _namespaceHandlerDic);
+            InitNamespaceHandler(ref _namespaceHandlerDic);
         }
 
-        public abstract void InitExecHandler(ref Dictionary<string, INamespaceHandler>? _namespaceHandlerDic);
+        protected abstract void InitNamespaceHandler(ref Dictionary<string, INamespaceHandler>? _namespaceHandlerDic);
 
-        public void Exec(string[] methodNames, Action<object> execCallback, int offset, params object[] args)
+        public virtual bool Exec(string[] methodNames, Action<object> execCallback, int offset, params object[] args)
         {
             if (_namespaceHandlerDic == null)
             {
-                Logger.Error("_execHandlerDic is null");
-                return;
+                return false;
             }
 
             if (_namespaceHandlerDic.ContainsKey(methodNames[offset]))
             {
                 _namespaceHandlerDic[methodNames[offset]].Exec(methodNames, execCallback, ++offset, args);
-                return;
+                return true;
             }
 
-            Logger.Error($"{string.Join(',', methodNames)} namespace not exist");
+            return false;
         }
     }
 }

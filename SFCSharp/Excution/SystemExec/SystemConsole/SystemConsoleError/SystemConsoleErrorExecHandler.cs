@@ -1,17 +1,15 @@
-﻿using System;
+﻿using SFCSharp.Excution.Base;
 using System.Collections.Generic;
-using SFCSharp.Excution.Base;
-using SFCSharp.Excution.SystemExec.SystemConsole.SystemConsoleError;
 
-namespace SFCSharp.Excution.SystemExec.SystemConsole
+namespace SFCSharp.Excution.SystemExec.SystemConsole.SystemConsoleError
 {
-    public class SystemConsoleExecHandler : SFMethodHandlerBase
+    public class SystemConsoleErrorExecHandler : SFMethodHandlerBase
     {
         protected override void InitMethodHandler(ref Dictionary<string, IMethodHandler> _methodHandlerDic)
         {
             _methodHandlerDic = new Dictionary<string, IMethodHandler>()
             {
-                { "WriteLine", new SFExecSC() },
+                { "WriteLine", new SFExecSCEW() }
             };
         }
 
@@ -19,7 +17,7 @@ namespace SFCSharp.Excution.SystemExec.SystemConsole
         {
             _namespaceHandlerDic = new Dictionary<string, INamespaceHandler>()
             {
-                { "Error", new SystemConsoleErrorExecHandler() },
+
             };
         }
     }

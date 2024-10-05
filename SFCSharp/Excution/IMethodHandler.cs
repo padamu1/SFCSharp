@@ -2,7 +2,7 @@
 
 namespace SFCSharp.Excution
 {
-    public interface IMehtodHandler
+    public interface IMethodHandler
     {
         public void Excute(Action<object> execCallback, params object[] param);
     }

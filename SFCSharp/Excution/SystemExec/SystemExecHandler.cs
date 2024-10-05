@@ -6,11 +6,11 @@ namespace SFCSharp.Excution.SystemExec
 {
     public class SystemExecHandler : SFNamespaceHandlerBase
     {
-        public override void InitExecHandler(ref Dictionary<string, INamespaceHandler>? _namespaceHandlerDic)
+        protected override void InitNamespaceHandler(ref Dictionary<string, INamespaceHandler>? _namespaceHandlerDic)
         {
             _namespaceHandlerDic = new Dictionary<string, INamespaceHandler>()
             {
-                {"Console", new SystemConsoleExecHandler() },
+                { "Console", new SystemConsoleExecHandler() },
             };
         }
     }

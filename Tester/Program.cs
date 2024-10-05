@@ -5,7 +5,7 @@ public class Program
 {
     public static void Main()
     {
-        string testScript = @"System.Console.WriteLine(""Hello"", ""Hello2"");";
+        string testScript = @"System.Console.Error.WriteLine(""Hello"");";
 
         ContextMethodAnalyzer.Parse(testScript, out string method, out List<object> param);
         SFExecManager.ExecWrapper(method, null, param.ToArray());
