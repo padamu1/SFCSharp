@@ -1,5 +1,4 @@
-﻿using SFCSharp.Utils;
-using System;
+﻿using System;
 
 namespace SFCSharp.Excution.SystemExec.SystemConsole
 {

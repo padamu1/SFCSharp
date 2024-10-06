@@ -1,7 +1,5 @@
-﻿using SFCSharp.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace SFCSharp.Excution.Base
 {
@@ -18,7 +16,7 @@ namespace SFCSharp.Excution.Base
 
         public override bool Exec(string[] methodNames, Action<object> execCallback, int offset, params object[] args)
         {
-            if(base.Exec(methodNames, execCallback, offset, args))
+            if (base.Exec(methodNames, execCallback, offset, args))
             {
                 return true;
             }
