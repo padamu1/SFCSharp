@@ -1,18 +1,17 @@
 ﻿using SFCSharp.Excution.Base;
-using SFCSharp.Excution.SystemExec;
-using SFCSharp.Excution.UnityExec;
+using SFCSharp.Excution.UnityExec.UnityExecTransform;
+using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution
+namespace SFCSharp.Excution.UnityExec
 {
-    public class SFExecHandler : SFNamespaceHandlerBase
+    public class UnityExecHandler : SFNamespaceHandlerBase
     {
         protected override void InitNamespaceHandler(ref Dictionary<string, INamespaceHandler>? _namespaceHandlerDic)
         {
             _namespaceHandlerDic = new Dictionary<string, INamespaceHandler>()
             {
-                {"System", new SystemExecHandler() },
-                {"UnityEngine", new UnityExecHandler() },
+                {"Transform", new SFExecUT() },
             };
         }
     }

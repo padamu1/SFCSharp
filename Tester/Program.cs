@@ -1,11 +1,13 @@
-﻿using SFCSharp.Attributes;
+﻿using SFCSharp.Analyzer;
+using SFCSharp.Attributes;
+using SFCSharp.Excution;
 using SFCSharp.ScriptUtil;
 
 public class Program
 {
     public static void Main()
     {
-        string testScript2 = @"";
+        //string testScript2 = @"";
         //string testScript = @"System.Console.Error.WriteLine(""Hello"");";
         //
         //ContextMethodAnalyzer.Parse(testScript, out string method, out List<object> param);
@@ -13,10 +15,11 @@ public class Program
 
 
         var sources = SFSourceReader.GetScriptsFromFolderPath("C:\\git\\SFCSharp\\Tester");
-
+        
         foreach (string source in sources)
         {
-            Console.WriteLine(source);
+            SFCSharpParser.ExtractClassesWithSFCSharp(source);
+            //Console.WriteLine(source);
         }
 
         Console.ReadLine();
@@ -31,7 +34,6 @@ namespace Test.Sample
     {
         public void Run()
         {
-
         }
 
         public void Test()
