@@ -11,7 +11,8 @@
       "Bash(find:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(dotnet run:*)"
+      "Bash(dotnet run:*)",
+      "Bash(ls -la \"C:\\git\\SFCSharp\\SFCSharp\\Attributes\"\" 2>/dev/null || echo \"Not found \")"
     ],
     "deny": [],
     "ask": []
