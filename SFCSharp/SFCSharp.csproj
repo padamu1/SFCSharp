@@ -6,8 +6,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="ScriptingEngine\UnitySE\" />
-    <Folder Include="ScriptingEngine\SystemSE\" />
+    <Compile Remove="ScriptingEngine\**" />
+    <EmbeddedResource Remove="ScriptingEngine\**" />
+    <None Remove="ScriptingEngine\**" />
   </ItemGroup>
 
 </Project>
