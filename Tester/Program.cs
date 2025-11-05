@@ -1,3 +1,4 @@
+using SFCSharp.Build;
 using SFCSharp.Context;
 using SFCSharp.Excution;
 using SFCSharp.Excution.UnityExec;
@@ -31,6 +32,7 @@ public class Program
         TestIntegrationWorkflow();
         TestScriptExecution();
         TestAssetBundleBuildPipeline();
+        TestRealBuildPipeline();
 
         // 테스트 결과 출력
         PrintTestSummary();
@@ -907,6 +909,324 @@ public class QuestSystem : MonoBehaviour
         catch (Exception ex)
         {
             FailTest("MOD 배포 시뮬레이션", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region Real Build Pipeline Tests
+
+    private static void TestRealBuildPipeline()
+    {
+        PrintTestCategory("Real Build Pipeline - SFCSharpBuildProcessor Tests");
+
+        // Test 1: 기본 빌드 설정
+        TestBasicBuildConfiguration();
+
+        // Test 2: C# 스크립트 감지 및 변환
+        TestScriptDetectionAndConversion();
+
+        // Test 3: Prefab 감지 및 수정
+        TestPrefabDetectionAndModification();
+
+        // Test 4: 완전한 빌드 프로세스
+        TestCompleteBuildProcess();
+
+        // Test 5: 빌드 출력 검증
+        TestBuildOutputValidation();
+    }
+
+    private static void TestBasicBuildConfiguration()
+    {
+        try
+        {
+            var config = new SFCSharpBuildConfig
+            {
+                SourceScriptDirectory = "TestAssets/Scripts",
+                SourcePrefabDirectory = "TestAssets/Prefabs",
+                OutputDirectory = "TestBuild/Output",
+                BundleName = "TestMOD",
+                BundleVersion = "1.0.0"
+            };
+
+            Assert(!string.IsNullOrEmpty(config.SourceScriptDirectory), "Source script directory should be set");
+            Assert(!string.IsNullOrEmpty(config.SourcePrefabDirectory), "Source prefab directory should be set");
+            Assert(!string.IsNullOrEmpty(config.OutputDirectory), "Output directory should be set");
+            Assert(config.BundleName == "TestMOD", "Bundle name should be TestMOD");
+            PassTest("기본 빌드 설정");
+        }
+        catch (Exception ex)
+        {
+            FailTest("기본 빌드 설정", ex.Message);
+        }
+    }
+
+    private static void TestScriptDetectionAndConversion()
+    {
+        try
+        {
+            // 테스트용 디렉토리 구조 생성
+            var testDir = "TestBuild/ScriptDetection";
+            var scriptDir = Path.Combine(testDir, "Scripts");
+            Directory.CreateDirectory(scriptDir);
+
+            // [SFCSharp] 속성이 있는 C# 파일 생성
+            var scriptContent = @"
+using UnityEngine;
+
+[SFCSharp]
+public class TestPlayerController : MonoBehaviour
+{
+    public void Initialize()
+    {
+        GameObject.Instantiate('Player')
+        GameObject.Instantiate('PlayerUI')
+    }
+
+    public void Cleanup()
+    {
+        GameObject.Instantiate('PlayerBackup')
+    }
+}";
+
+            var scriptPath = Path.Combine(scriptDir, "TestPlayerController.cs");
+            File.WriteAllText(scriptPath, scriptContent);
+
+            // 빌드 프로세서 실행
+            var config = new SFCSharpBuildConfig
+            {
+                SourceScriptDirectory = scriptDir,
+                OutputDirectory = Path.Combine(testDir, "Build")
+            };
+
+            var processor = new SFCSharpBuildProcessor(config);
+            var result = processor.Build();
+
+            Assert(result.Status == BuildStatus.Success, "Build should succeed");
+            Assert(result.ProcessedScripts.Count > 0, "Should process at least one script");
+            PassTest("C# 스크립트 감지 및 변환");
+
+            // 변환된 스크립트 확인
+            var outputScriptPath = Path.Combine(config.OutputDirectory, "Scripts", "TestPlayerController.script");
+            if (File.Exists(outputScriptPath))
+            {
+                var convertedContent = File.ReadAllText(outputScriptPath);
+                Assert(convertedContent.Contains("UnityEngine.GameObject.Create"), "Should contain converted command");
+                Assert(!convertedContent.Contains("Instantiate"), "Should not contain Instantiate");
+                PassTest("변환된 스크립트 검증");
+            }
+
+            // 정리
+            Directory.Delete(testDir, true);
+        }
+        catch (Exception ex)
+        {
+            FailTest("C# 스크립트 감지 및 변환", ex.Message);
+        }
+    }
+
+    private static void TestPrefabDetectionAndModification()
+    {
+        try
+        {
+            var testDir = "TestBuild/PrefabModification";
+            var scriptDir = Path.Combine(testDir, "Scripts");
+            var prefabDir = Path.Combine(testDir, "Prefabs");
+            Directory.CreateDirectory(scriptDir);
+            Directory.CreateDirectory(prefabDir);
+
+            // [SFCSharp] C# 스크립트 생성
+            var scriptContent = @"
+[SFCSharp]
+public class EnemyController : MonoBehaviour
+{
+    public void Spawn()
+    {
+        GameObject.Instantiate('Enemy')
+    }
+}";
+
+            var scriptPath = Path.Combine(scriptDir, "EnemyController.cs");
+            File.WriteAllText(scriptPath, scriptContent);
+
+            // Prefab 파일 생성 (간단한 YAML 형식)
+            var prefabContent = @"%YAML 1.1
+--- !u!1 &1234567890
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1234567891}
+  - component: {fileID: 1234567892}
+  m_Layer: 0
+  m_Name: Enemy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1234567891
+RectTransform:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+--- !u!114 &1234567892
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: EnemyControllerGUID}
+  m_Name:
+  m_EditorClassIdentifier:
+";
+
+            var prefabPath = Path.Combine(prefabDir, "Enemy.prefab");
+            File.WriteAllText(prefabPath, prefabContent);
+
+            // 빌드 실행
+            var config = new SFCSharpBuildConfig
+            {
+                SourceScriptDirectory = scriptDir,
+                SourcePrefabDirectory = prefabDir,
+                OutputDirectory = Path.Combine(testDir, "Build")
+            };
+
+            var processor = new SFCSharpBuildProcessor(config);
+            var result = processor.Build();
+
+            Assert(result.Status == BuildStatus.Success, "Build should succeed");
+            PassTest("Prefab 감지 및 수정");
+
+            // 정리
+            Directory.Delete(testDir, true);
+        }
+        catch (Exception ex)
+        {
+            FailTest("Prefab 감지 및 수정", ex.Message);
+        }
+    }
+
+    private static void TestCompleteBuildProcess()
+    {
+        try
+        {
+            var testDir = "TestBuild/CompleteBuild";
+            var scriptDir = Path.Combine(testDir, "Scripts");
+            var prefabDir = Path.Combine(testDir, "Prefabs");
+            Directory.CreateDirectory(scriptDir);
+            Directory.CreateDirectory(prefabDir);
+
+            // 여러 개의 [SFCSharp] 스크립트 생성
+            var scripts = new[]
+            {
+                ("PlayerController", "public void Start() { GameObject.Instantiate('Player') }"),
+                ("EnemyManager", "public void Spawn() { GameObject.Instantiate('Enemy') }"),
+                ("QuestSystem", "public void Initialize() { GameObject.Instantiate('QuestNPC') }")
+            };
+
+            foreach (var (name, method) in scripts)
+            {
+                var content = $@"
+[SFCSharp]
+public class {name} : MonoBehaviour
+{{
+    {method}
+}}";
+                File.WriteAllText(Path.Combine(scriptDir, $"{name}.cs"), content);
+            }
+
+            // Prefab 생성
+            for (int i = 0; i < 3; i++)
+            {
+                var prefabContent = $@"%YAML 1.1
+--- !u!1 &{i}
+GameObject:
+  m_Name: Prefab{i}
+--- !u!114 &{i + 1}
+MonoBehaviour:
+  m_Script: {{fileID: 11500000, guid: SFCSharpScript{i}}}
+";
+                File.WriteAllText(Path.Combine(prefabDir, $"Prefab{i}.prefab"), prefabContent);
+            }
+
+            // 빌드 실행
+            var config = new SFCSharpBuildConfig
+            {
+                SourceScriptDirectory = scriptDir,
+                SourcePrefabDirectory = prefabDir,
+                OutputDirectory = Path.Combine(testDir, "Build"),
+                BundleName = "CompleteMOD",
+                BundleVersion = "2.0.0"
+            };
+
+            var processor = new SFCSharpBuildProcessor(config);
+            var result = processor.Build();
+
+            Assert(result.Status == BuildStatus.Success, "Complete build should succeed");
+            Assert(result.ProcessedScripts.Count >= 3, "Should process at least 3 scripts");
+            Assert(result.BuildTime.TotalSeconds >= 0, "Build should complete in reasonable time");
+            PassTest("완전한 빌드 프로세스");
+
+            // 정리
+            Directory.Delete(testDir, true);
+        }
+        catch (Exception ex)
+        {
+            FailTest("완전한 빌드 프로세스", ex.Message);
+        }
+    }
+
+    private static void TestBuildOutputValidation()
+    {
+        try
+        {
+            var testDir = "TestBuild/OutputValidation";
+            var scriptDir = Path.Combine(testDir, "Scripts");
+            Directory.CreateDirectory(scriptDir);
+
+            // 테스트 스크립트 생성
+            var scriptContent = @"
+[SFCSharp]
+public class ValidateTest : MonoBehaviour
+{
+    public void Execute()
+    {
+        GameObject.Instantiate('TestObject')
+    }
+}";
+
+            File.WriteAllText(Path.Combine(scriptDir, "ValidateTest.cs"), scriptContent);
+
+            var config = new SFCSharpBuildConfig
+            {
+                SourceScriptDirectory = scriptDir,
+                OutputDirectory = Path.Combine(testDir, "Build")
+            };
+
+            var processor = new SFCSharpBuildProcessor(config);
+            var result = processor.Build();
+
+            // 출력 검증
+            var outputDir = config.OutputDirectory;
+            Assert(Directory.Exists(outputDir), "Output directory should exist");
+            Assert(Directory.Exists(Path.Combine(outputDir, "Scripts")), "Scripts output directory should exist");
+            Assert(Directory.Exists(Path.Combine(outputDir, "Bundles")), "Bundles output directory should exist");
+            PassTest("빌드 출력 검증 - 디렉토리");
+
+            // 메타데이터 파일 확인
+            var manifestPath = Path.Combine(outputDir, "build.manifest");
+            Assert(File.Exists(manifestPath), "build.manifest should be created");
+            var manifestContent = File.ReadAllText(manifestPath);
+            Assert(manifestContent.Contains("\"bundleName\""), "Manifest should contain bundleName");
+            PassTest("빌드 출력 검증 - 메타데이터");
+
+            // 정리
+            Directory.Delete(testDir, true);
+        }
+        catch (Exception ex)
+        {
+            FailTest("빌드 출력 검증", ex.Message);
         }
     }
 
