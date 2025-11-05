@@ -143,7 +143,7 @@ namespace SFCSharp.Excution.UnityExec
         private SFVector3 _position;
         private SFQuaternion _rotation;
         private SFVector3 _scale;
-        private SFGameObject _gameObject;
+        private SFGameObject? _gameObject;
 
         public SFTransform(string name = "Transform")
         {
@@ -151,7 +151,16 @@ namespace SFCSharp.Excution.UnityExec
             _position = SFVector3.zero;
             _rotation = SFQuaternion.identity;
             _scale = SFVector3.one;
-            _gameObject = new SFGameObject(name);
+            // GameObject는 외부에서 설정하도록 변경
+            _gameObject = null;
+        }
+
+        /// <summary>
+        /// 내부용: GameObject를 설정합니다. (순환 참조 방지)
+        /// </summary>
+        internal void SetGameObject(SFGameObject gameObject)
+        {
+            _gameObject = gameObject;
         }
 
         public string name
@@ -184,7 +193,7 @@ namespace SFCSharp.Excution.UnityExec
             set => _scale = value;
         }
 
-        public SFGameObject gameObject => _gameObject;
+        public SFGameObject? gameObject => _gameObject;
 
         public void Translate(float x, float y, float z)
         {
@@ -260,6 +269,8 @@ namespace SFCSharp.Excution.UnityExec
             _name = name;
             _active = true;
             _transform = new SFTransform(name);
+            // 순환 참조 방지: GameObject가 생성될 때 Transform에 자신을 설정
+            _transform.SetGameObject(this);
         }
 
         public string name
