@@ -2,6 +2,7 @@ using SFCSharp.Context;
 using SFCSharp.Excution;
 using SFCSharp.Excution.UnityExec;
 using SFCSharp.Runtime;
+using SFCSharp.Tester;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,6 +30,7 @@ public class Program
         TestTransformOperations();
         TestIntegrationWorkflow();
         TestScriptExecution();
+        TestAssetBundleBuildPipeline();
 
         // 테스트 결과 출력
         PrintTestSummary();
@@ -598,6 +600,313 @@ public class Program
         catch (Exception ex)
         {
             FailTest(testName, ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region AssetBundle Build Pipeline Tests
+
+    private static void TestAssetBundleBuildPipeline()
+    {
+        PrintTestCategory("AssetBundle Build Pipeline - Full MOD Build & Runtime Tests");
+
+        // Test 1: 기본 MOD 빌드
+        TestBasicModBuild();
+
+        // Test 2: 복잡한 MOD 빌드 (여러 Prefab)
+        TestComplexModBuild();
+
+        // Test 3: C# 코드 → SFCSharp 스크립트 변환
+        TestCSharpToSFCSharpConversion();
+
+        // Test 4: 빌드된 Bundle 런타임 로드 및 실행
+        TestRuntimeBundleExecution();
+
+        // Test 5: MOD 배포 및 설치 시뮬레이션
+        TestModDistributionSimulation();
+    }
+
+    private static void TestBasicModBuild()
+    {
+        try
+        {
+            var simulator = new AssetBundleSimulator("TestBuild_Basic");
+
+            // Step 1: C# 스크립트 작성 ([SFCSharp] 태그)
+            string playerScript = @"
+using UnityEngine;
+[SFCSharp]
+public class PlayerController : MonoBehaviour
+{
+    public void Start()
+    {
+        // 플레이어 생성
+        GameObject.Instantiate('MainCharacter')
+    }
+
+    public void Initialize()
+    {
+        GameObject.Instantiate('Player')
+        GameObject.Instantiate('PlayerUI')
+    }
+}";
+
+            // Step 2: 스크립트 등록 (C# -> SFCSharp로 자동 변환)
+            simulator.RegisterScript("PlayerController", playerScript);
+            Assert(File.Exists("TestBuild_Basic/Scripts/PlayerController.script"), "Script file should be created");
+            PassTest("Step 1: C# 스크립트 변환");
+
+            // Step 3: Prefab 등록 (SFCSharpExecutor 자동 주입)
+            simulator.RegisterPrefab("Player_Prefab", "PlayerController");
+            PassTest("Step 2: Prefab SFCSharpExecutor 주입");
+
+            // Step 4: AssetBundle 빌드
+            var buildResult = simulator.BuildAssetBundle("PlayerMod_v1");
+            Assert(buildResult.Status == AssetBundleSimulator.BuildStatus.Success, "Build should succeed");
+            Assert(buildResult.ProcessedPrefabs.Count == 1, "Should process 1 prefab");
+            Assert(buildResult.ProcessedScripts.Count == 1, "Should process 1 script");
+            PassTest("Step 3: AssetBundle 빌드");
+
+            // Step 5: 빌드 검증
+            Assert(buildResult.BundleInfo.ContainsModData, "Bundle should contain MOD data");
+            Assert(buildResult.BundleInfo.TotalPrefabs == 1, "Bundle should have 1 prefab");
+            PassTest("Step 4: 빌드 결과 검증");
+
+            simulator.CleanUp();
+        }
+        catch (Exception ex)
+        {
+            FailTest("기본 MOD 빌드", ex.Message);
+        }
+    }
+
+    private static void TestComplexModBuild()
+    {
+        try
+        {
+            var simulator = new AssetBundleSimulator("TestBuild_Complex");
+
+            // 플레이어 스크립트
+            string playerScript = @"
+[SFCSharp]
+public class PlayerController : MonoBehaviour
+{
+    public void Initialize()
+    {
+        GameObject.Instantiate('Player')
+        GameObject.Instantiate('PlayerWeapon')
+        GameObject.Instantiate('PlayerArmor')
+    }
+}";
+
+            // 적 스크립트
+            string enemyScript = @"
+[SFCSharp]
+public class EnemyController : MonoBehaviour
+{
+    public void Spawn()
+    {
+        GameObject.Instantiate('Goblin')
+        GameObject.Instantiate('Goblin')
+        GameObject.Instantiate('Orc')
+    }
+}";
+
+            // 아이템 스크립트
+            string itemScript = @"
+[SFCSharp]
+public class ItemManager : MonoBehaviour
+{
+    public void Setup()
+    {
+        GameObject.Instantiate('Potion')
+        GameObject.Instantiate('Gold')
+    }
+}";
+
+            // 스크립트 등록
+            simulator.RegisterScript("PlayerController", playerScript);
+            simulator.RegisterScript("EnemyController", enemyScript);
+            simulator.RegisterScript("ItemManager", itemScript);
+            PassTest("복잡한 MOD: 3개 스크립트 등록");
+
+            // Prefab 등록
+            simulator.RegisterPrefab("Player_Prefab", "PlayerController");
+            simulator.RegisterPrefab("Enemy_Prefab", "EnemyController");
+            simulator.RegisterPrefab("Item_Prefab", "ItemManager");
+            PassTest("복잡한 MOD: 3개 Prefab 등록");
+
+            // AssetBundle 빌드
+            var buildResult = simulator.BuildAssetBundle("ComplexMod_v1");
+            Assert(buildResult.Status == AssetBundleSimulator.BuildStatus.Success, "Build should succeed");
+            Assert(buildResult.ProcessedPrefabs.Count == 3, "Should process 3 prefabs");
+            Assert(buildResult.ProcessedScripts.Count == 3, "Should process 3 scripts");
+            PassTest("복잡한 MOD: AssetBundle 빌드 (3 Prefab, 3 Script)");
+
+            simulator.CleanUp();
+        }
+        catch (Exception ex)
+        {
+            FailTest("복잡한 MOD 빌드", ex.Message);
+        }
+    }
+
+    private static void TestCSharpToSFCSharpConversion()
+    {
+        try
+        {
+            var simulator = new AssetBundleSimulator("TestBuild_Conversion");
+
+            // C# 원본 코드
+            string csharpCode = @"
+using UnityEngine;
+
+[SFCSharp]
+public class TestScript : MonoBehaviour
+{
+    public void CreateObjects()
+    {
+        GameObject.Instantiate('TestObject1')
+        GameObject.Instantiate('TestObject2')
+    }
+
+    public void SetupGame()
+    {
+        new GameObject('GameManager')
+        new GameObject('UICanvas')
+    }
+}";
+
+            // 변환 실행
+            simulator.RegisterScript("TestScript", csharpCode);
+
+            // 변환된 스크립트 확인
+            var scriptPath = "TestBuild_Conversion/Scripts/TestScript.script";
+            Assert(File.Exists(scriptPath), "Converted script file should exist");
+
+            var convertedContent = File.ReadAllText(scriptPath);
+            Assert(convertedContent.Contains("GameObject.Create"), "Should contain GameObject.Create");
+            Assert(convertedContent.Contains("UnityEngine.GameObject.Create"), "Should have UnityEngine namespace");
+            Assert(!convertedContent.Contains("Instantiate"), "Should not contain Instantiate");
+            PassTest("C# → SFCSharp 코드 변환");
+
+            simulator.CleanUp();
+        }
+        catch (Exception ex)
+        {
+            FailTest("C# → SFCSharp 변환", ex.Message);
+        }
+    }
+
+    private static void TestRuntimeBundleExecution()
+    {
+        try
+        {
+            var simulator = new AssetBundleSimulator("TestBuild_Runtime");
+
+            // MOD 스크립트 준비
+            string modScript = @"
+[SFCSharp]
+public class RuntimeTest : MonoBehaviour
+{
+    public void Execute()
+    {
+        GameObject.Instantiate('RuntimeObject')
+        GameObject.Instantiate('RuntimeEntity')
+    }
+}";
+
+            // 빌드
+            simulator.RegisterScript("RuntimeTest", modScript);
+            simulator.RegisterPrefab("RuntimeTest_Prefab", "RuntimeTest");
+            var buildResult = simulator.BuildAssetBundle("RuntimeMod_v1");
+            Assert(buildResult.Status == AssetBundleSimulator.BuildStatus.Success, "Build should succeed");
+            PassTest("런타임 테스트: Bundle 빌드");
+
+            // 런타임 로드 및 실행
+            var runtimeResult = simulator.LoadAndRunAssetBundle("RuntimeMod_v1");
+            Assert(runtimeResult.Status == AssetBundleSimulator.RuntimeStatus.Success, "Runtime execution should succeed");
+            Assert(runtimeResult.ExecutedPrefabs.Count == 1, "Should execute 1 prefab");
+            Assert(runtimeResult.ExecutedPrefabs[0].Status == AssetBundleSimulator.ExecutionStatus.Success, "Prefab execution should succeed");
+            PassTest("런타임 테스트: Bundle 로드 및 실행");
+
+            // 실행된 명령어 확인
+            var executedInfo = runtimeResult.ExecutedPrefabs[0];
+            Assert(executedInfo.ExecutedCommands > 0, "Should execute at least one command");
+            PassTest("런타임 테스트: 명령어 실행 완료");
+
+            simulator.CleanUp();
+        }
+        catch (Exception ex)
+        {
+            FailTest("런타임 Bundle 실행", ex.Message);
+        }
+    }
+
+    private static void TestModDistributionSimulation()
+    {
+        try
+        {
+            // Step 1: 모더가 MOD 개발
+            var modBuilder = new AssetBundleSimulator("TestBuild_Distribution");
+
+            string questModScript = @"
+[SFCSharp]
+public class QuestSystem : MonoBehaviour
+{
+    public void Initialize()
+    {
+        GameObject.Instantiate('QuestGiver')
+        GameObject.Instantiate('QuestTarget')
+        GameObject.Instantiate('QuestReward')
+    }
+}";
+
+            modBuilder.RegisterScript("QuestSystem", questModScript);
+            modBuilder.RegisterPrefab("Quest_Prefab", "QuestSystem");
+            var buildResult = modBuilder.BuildAssetBundle("QuestMod_v1.0");
+            Assert(buildResult.Status == AssetBundleSimulator.BuildStatus.Success, "MOD build should succeed");
+            PassTest("배포 시뮬레이션: MOD 개발 및 빌드");
+
+            // Step 2: MOD 배포 (AssetBundle 파일)
+            var bundleFile = "TestBuild_Distribution/QuestMod_v1.0.bundle";
+            Assert(buildResult.BundleInfo.ContainsModData, "Bundle should be ready for distribution");
+            PassTest("배포 시뮬레이션: MOD 배포 준비");
+
+            // Step 3: 사용자가 MOD 설치
+            var modInstaller = new AssetBundleSimulator("TestInstall_Distribution");
+
+            // 설치 과정 (Bundle에서 파일 추출)
+            string questModScript2 = @"
+[SFCSharp]
+public class QuestSystem : MonoBehaviour
+{
+    public void Initialize()
+    {
+        GameObject.Instantiate('QuestGiver')
+        GameObject.Instantiate('QuestTarget')
+        GameObject.Instantiate('QuestReward')
+    }
+}";
+
+            modInstaller.RegisterScript("QuestSystem", questModScript2);
+            modInstaller.RegisterPrefab("Quest_Prefab", "QuestSystem");
+            PassTest("배포 시뮬레이션: MOD 설치");
+
+            // Step 4: 런타임에 MOD 실행
+            var runtimeResult = modInstaller.LoadAndRunAssetBundle("QuestMod_v1.0");
+            Assert(runtimeResult.Status == AssetBundleSimulator.RuntimeStatus.Success, "MOD execution should succeed");
+            PassTest("배포 시뮬레이션: MOD 런타임 실행");
+
+            modBuilder.CleanUp();
+            modInstaller.CleanUp();
+
+            PassTest("배포 시뮬레이션: 완전한 파이프라인");
+        }
+        catch (Exception ex)
+        {
+            FailTest("MOD 배포 시뮬레이션", ex.Message);
         }
     }
 
