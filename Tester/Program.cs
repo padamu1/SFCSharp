@@ -1,5 +1,4 @@
-using SFCSharp.Analyzer;
-using SFCSharp.Attributes;
+using SFCSharp.Context;
 using SFCSharp.Excution;
 using SFCSharp.Excution.UnityExec;
 using SFCSharp.Runtime;
@@ -8,172 +7,541 @@ using System.Collections.Generic;
 
 public class Program
 {
+    private static int passedTests = 0;
+    private static int failedTests = 0;
+    private static List<string> failedTestNames = new();
+
     public static void Main()
     {
-        Console.WriteLine("=== SFCSharp Refactored Test ===\n");
+        Console.WriteLine("════════════════════════════════════════════════════════════");
+        Console.WriteLine("           SFCSharp MOD Scripting Framework Tests             ");
+        Console.WriteLine("════════════════════════════════════════════════════════════\n");
 
-        // 1. Vector3 테스트
-        TestVector3();
+        // 테스트 실행
+        TestCommandParserBasic();
+        TestCommandParserAdvanced();
+        TestScriptExecutorBasic();
+        TestScriptExecutorVariables();
+        TestUnityEngineTypes();
+        TestGameObjectLifecycle();
+        TestTransformOperations();
+        TestIntegrationWorkflow();
 
-        // 2. Transform 테스트
-        TestTransform();
+        // 테스트 결과 출력
+        PrintTestSummary();
 
-        // 3. GameObject 테스트
-        TestGameObject();
-
-        // 4. CommandParser 테스트
-        TestCommandParser();
-
-        // 5. ScriptExecutor 테스트
-        TestScriptExecutor();
-
-        Console.WriteLine("\n=== Test Complete ===");
+        Console.WriteLine("\n프로그램을 종료하려면 엔터를 누르세요...");
         Console.ReadLine();
     }
 
-    private static void TestVector3()
+    #region CommandParser Tests
+
+    private static void TestCommandParserBasic()
     {
-        Console.WriteLine("--- Vector3 Test ---");
+        PrintTestCategory("CommandParser - Basic Tests");
 
-        var vec1 = new SFVector3(1, 2, 3);
-        var vec2 = new SFVector3(4, 5, 6);
-
-        Console.WriteLine($"Vector1: {vec1}");
-        Console.WriteLine($"Vector2: {vec2}");
-
-        float distance = SFVector3.Distance(vec1, vec2);
-        Console.WriteLine($"Distance: {distance:F2}");
-
-        float dot = SFVector3.Dot(vec1, vec2);
-        Console.WriteLine($"Dot Product: {dot}");
-
-        var cross = SFVector3.Cross(vec1, vec2);
-        Console.WriteLine($"Cross Product: {cross}");
-
-        Console.WriteLine($"Magnitude of Vector1: {vec1.magnitude:F2}");
-        Console.WriteLine($"Normalized Vector1: {vec1.normalized}\n");
-    }
-
-    private static void TestTransform()
-    {
-        Console.WriteLine("--- Transform Test ---");
-
-        var transform = new SFTransform("TestObject");
-        Console.WriteLine($"Created Transform: {transform.name}");
-        Console.WriteLine($"Position: {transform.position}");
-
-        // Position 설정
-        transform.position = new SFVector3(10, 20, 30);
-        Console.WriteLine($"After position change: {transform.position}");
-
-        // Translate
-        transform.Translate(5, 5, 5);
-        Console.WriteLine($"After translate(5,5,5): {transform.position}");
-
-        // Scale
-        transform.scale = new SFVector3(2, 2, 2);
-        Console.WriteLine($"Scale: {transform.scale}\n");
-    }
-
-    private static void TestGameObject()
-    {
-        Console.WriteLine("--- GameObject Test ---");
-
-        var gameObject = new SFGameObject("TestGameObject");
-        Console.WriteLine($"Created: {gameObject.name}");
-        Console.WriteLine($"Active: {gameObject.activeSelf}");
-
-        // 이름 변경
-        gameObject.name = "RenamedObject";
-        Console.WriteLine($"After rename: {gameObject.name}");
-
-        // 활성화 상태 변경
-        gameObject.SetActive(false);
-        Console.WriteLine($"After SetActive(false): {gameObject.activeSelf}");
-
-        gameObject.SetActive(true);
-        Console.WriteLine($"After SetActive(true): {gameObject.activeSelf}\n");
-    }
-
-    private static void TestCommandParser()
-    {
-        Console.WriteLine("--- CommandParser Test ---");
-
+        // Test 1: 단순 메서드 호출
         try
         {
-            // 테스트 1: 간단한 메서드 호출
-            var cmd1 = CommandParser.Parse("GameObject.Create('Player')");
-            Console.WriteLine($"✓ Parsed: {cmd1}");
-            Console.WriteLine($"  Method: {cmd1.MethodPath}");
-            Console.WriteLine($"  Args: {string.Join(", ", cmd1.Arguments)}\n");
-
-            // 테스트 2: Vector3 인자
-            var cmd2 = CommandParser.Parse("Transform.Translate(Vector3(1.0, 2.0, 3.0))");
-            Console.WriteLine($"✓ Parsed: {cmd2}");
-            Console.WriteLine($"  Args: {cmd2.Arguments[0]}\n");
-
-            // 테스트 3: 여러 인자
-            var cmd3 = CommandParser.Parse("GameObject.Create('Enemy', 'Boss', true)");
-            Console.WriteLine($"✓ Parsed: {cmd3}");
-            Console.WriteLine($"  Args: {string.Join(", ", cmd3.Arguments)}\n");
+            var cmd = CommandParser.Parse("GameObject.Create('Player')");
+            Assert(cmd.MethodPath == "GameObject.Create", "MethodPath should be 'GameObject.Create'");
+            Assert(cmd.Arguments.Length == 1, "Should have 1 argument");
+            Assert(cmd.Arguments[0].ToString() == "Player", "First argument should be 'Player'");
+            PassTest("단순 메서드 호출 파싱");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"✗ Error: {ex.Message}\n");
+            FailTest("단순 메서드 호출 파싱", ex.Message);
+        }
+
+        // Test 2: 여러 인자
+        try
+        {
+            var cmd = CommandParser.Parse("GameObject.Create('Enemy', 'Boss', true)");
+            Assert(cmd.Arguments.Length == 3, "Should have 3 arguments");
+            Assert(cmd.Arguments[0].ToString() == "Enemy", "First arg should be 'Enemy'");
+            Assert(cmd.Arguments[1].ToString() == "Boss", "Second arg should be 'Boss'");
+            Assert((bool)cmd.Arguments[2] == true, "Third arg should be true");
+            PassTest("여러 인자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("여러 인자 파싱", ex.Message);
+        }
+
+        // Test 3: Vector3 인자
+        try
+        {
+            var cmd = CommandParser.Parse("Transform.Translate(Vector3(1.0, 2.0, 3.0))");
+            Assert(cmd.MethodPath == "Transform.Translate", "MethodPath should be 'Transform.Translate'");
+            Assert(cmd.Arguments[0] is SFVector3, "Argument should be SFVector3");
+            var vec = (SFVector3)cmd.Arguments[0];
+            Assert(vec.x == 1.0f && vec.y == 2.0f && vec.z == 3.0f, "Vector3 values should match");
+            PassTest("Vector3 인자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("Vector3 인자 파싱", ex.Message);
+        }
+
+        // Test 4: 부동소수점 숫자
+        try
+        {
+            var cmd = CommandParser.Parse("Transform.Scale(2.5)");
+            Assert(cmd.Arguments[0] is float, "Argument should be float");
+            Assert((float)cmd.Arguments[0] == 2.5f, "Float value should be 2.5");
+            PassTest("부동소수점 숫자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("부동소수점 숫자 파싱", ex.Message);
+        }
+
+        // Test 5: 빈 인자
+        try
+        {
+            var cmd = CommandParser.Parse("GameObject.Destroy()");
+            Assert(cmd.Arguments.Length == 0, "Should have 0 arguments");
+            PassTest("빈 인자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("빈 인자 파싱", ex.Message);
         }
     }
 
-    private static void TestScriptExecutor()
+    private static void TestCommandParserAdvanced()
     {
-        Console.WriteLine("--- ScriptExecutor Test ---");
+        PrintTestCategory("CommandParser - Advanced Tests");
+
+        // Test 1: 네임스페이스가 포함된 명령어
+        try
+        {
+            var cmd = CommandParser.Parse("UnityEngine.GameObject.Create('Player')");
+            Assert(cmd.MethodPath == "UnityEngine.GameObject.Create", "Should handle namespace correctly");
+            PassTest("네임스페이스 포함 명령어");
+        }
+        catch (Exception ex)
+        {
+            FailTest("네임스페이스 포함 명령어", ex.Message);
+        }
+
+        // Test 2: 정수 인자
+        try
+        {
+            var cmd = CommandParser.Parse("Array.Get(5)");
+            Assert(cmd.Arguments[0] is int, "Argument should be int");
+            Assert((int)cmd.Arguments[0] == 5, "Int value should be 5");
+            PassTest("정수 인자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("정수 인자 파싱", ex.Message);
+        }
+
+        // Test 3: 혼합 인자
+        try
+        {
+            var cmd = CommandParser.Parse("Method('text', 42, 3.14, true, Vector3(0, 1, 0))");
+            Assert(cmd.Arguments.Length == 5, "Should have 5 arguments");
+            Assert(cmd.Arguments[0].ToString() == "text", "First arg should be string");
+            Assert((int)cmd.Arguments[1] == 42, "Second arg should be int");
+            Assert(Math.Abs((float)cmd.Arguments[2] - 3.14f) < 0.01f, "Third arg should be float");
+            Assert((bool)cmd.Arguments[3] == true, "Fourth arg should be bool");
+            Assert(cmd.Arguments[4] is SFVector3, "Fifth arg should be Vector3");
+            PassTest("혼합 인자 파싱");
+        }
+        catch (Exception ex)
+        {
+            FailTest("혼합 인자 파싱", ex.Message);
+        }
+
+        // Test 4: 공백 처리
+        try
+        {
+            var cmd1 = CommandParser.Parse("  GameObject.Create('Player')  ");
+            var cmd2 = CommandParser.Parse("GameObject.Create( 'Player' )");
+            var cmd3 = CommandParser.Parse("GameObject . Create ( 'Player' )");
+            Assert(cmd1.MethodPath == "GameObject.Create", "Should handle leading/trailing spaces");
+            PassTest("공백 처리");
+        }
+        catch (Exception ex)
+        {
+            FailTest("공백 처리", ex.Message);
+        }
+
+        // Test 5: 잘못된 형식 예외
+        try
+        {
+            CommandParser.Parse("InvalidCommand");
+            FailTest("예외 처리 - 잘못된 형식", "Should have thrown exception");
+        }
+        catch (InvalidOperationException)
+        {
+            PassTest("예외 처리 - 잘못된 형식");
+        }
+        catch (Exception ex)
+        {
+            FailTest("예외 처리 - 잘못된 형식", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region ScriptExecutor Tests
+
+    private static void TestScriptExecutorBasic()
+    {
+        PrintTestCategory("ScriptExecutor - Basic Tests");
 
         try
         {
-            // 컨텍스트 생성
-            var context = new SFCSharp.Context.SFContext("Test.Namespace", "TestScript");
+            var context = new SFContext("Test.Namespace", "TestScript");
             var executor = new ScriptExecutor(context);
 
-            Console.WriteLine($"✓ ScriptExecutor created for {context}");
+            // Test 1: GameObject 생성
+            var result1 = executor.Execute("UnityEngine.GameObject.Create('TestPlayer')");
+            Assert(result1.Success, "Execute should succeed");
+            Assert(result1.Result is SFGameObject, "Result should be GameObject");
+            var go = (SFGameObject)result1.Result;
+            Assert(go.name == "TestPlayer", "GameObject name should be 'TestPlayer'");
+            PassTest("GameObject 생성");
 
-            // 변수 저장
-            executor.SetVariable("playerName", "Hero");
-            Console.WriteLine($"✓ Variable 'playerName' set to 'Hero'");
-
-            // 변수 조회
-            var playerName = executor.GetVariable("playerName");
-            Console.WriteLine($"✓ Variable 'playerName' retrieved: {playerName}\n");
-
-            // 명령어 실행 테스트 (GameObject.Create)
-            Console.WriteLine("Executing commands:");
-            var result1 = executor.Execute("UnityEngine.GameObject.Create('Player')");
-            Console.WriteLine($"  {result1}");
-
-            if (result1.Success && result1.Result is SFGameObject go)
-            {
-                Console.WriteLine($"  → GameObject created: {go.name}");
-                Console.WriteLine();
-            }
+            // Test 2: Transform 접근
+            var result2 = executor.Execute("UnityEngine.GameObject.GetTransform()");
+            Assert(result2.Success, "GetTransform should succeed");
+            PassTest("Transform 접근");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"✗ Error: {ex.Message}\n");
+            FailTest("ScriptExecutor 기본 기능", ex.Message);
         }
     }
+
+    private static void TestScriptExecutorVariables()
+    {
+        PrintTestCategory("ScriptExecutor - Variable Tests");
+
+        try
+        {
+            var context = new SFContext("Test.Variables", "VariableTest");
+            var executor = new ScriptExecutor(context);
+
+            // Test 1: 변수 저장
+            executor.SetVariable("playerName", "Hero");
+            var value = executor.GetVariable("playerName");
+            Assert(value.ToString() == "Hero", "Variable should be stored and retrieved");
+            PassTest("변수 저장 및 조회");
+
+            // Test 2: 다양한 타입의 변수
+            executor.SetVariable("playerLevel", 10);
+            executor.SetVariable("playerHealth", 95.5f);
+            executor.SetVariable("isAlive", true);
+
+            Assert((int)executor.GetVariable("playerLevel") == 10, "Int variable");
+            Assert(Math.Abs((float)executor.GetVariable("playerHealth") - 95.5f) < 0.01f, "Float variable");
+            Assert((bool)executor.GetVariable("isAlive") == true, "Bool variable");
+            PassTest("다양한 타입 변수 저장");
+
+            // Test 3: 변수 덮어쓰기
+            executor.SetVariable("playerName", "SuperHero");
+            Assert(executor.GetVariable("playerName").ToString() == "SuperHero", "Variable should be overwritable");
+            PassTest("변수 덮어쓰기");
+
+            // Test 4: 존재하지 않는 변수 조회
+            var nonExistent = executor.GetVariable("nonExistent");
+            Assert(nonExistent == null, "Non-existent variable should return null");
+            PassTest("존재하지 않는 변수 처리");
+        }
+        catch (Exception ex)
+        {
+            FailTest("ScriptExecutor 변수 관리", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region UnityEngine Tests
+
+    private static void TestUnityEngineTypes()
+    {
+        PrintTestCategory("UnityEngine Types - Basic Tests");
+
+        // Test 1: Vector3 생성 및 연산
+        try
+        {
+            var vec1 = new SFVector3(1, 2, 3);
+            var vec2 = new SFVector3(4, 5, 6);
+
+            Assert(vec1.x == 1 && vec1.y == 2 && vec1.z == 3, "Vector3 초기화");
+
+            float distance = SFVector3.Distance(vec1, vec2);
+            Assert(Math.Abs(distance - 5.196f) < 0.01f, "Vector3 거리 계산");
+
+            float dot = SFVector3.Dot(vec1, vec2);
+            Assert(dot == 32, "Vector3 내적 계산");
+
+            var cross = SFVector3.Cross(vec1, vec2);
+            Assert(cross.x == -3 && cross.y == 6 && cross.z == -3, "Vector3 외적 계산");
+
+            PassTest("Vector3 연산");
+        }
+        catch (Exception ex)
+        {
+            FailTest("Vector3 연산", ex.Message);
+        }
+
+        // Test 2: Vector3 정규화
+        try
+        {
+            var vec = new SFVector3(3, 4, 0);
+            var normalized = vec.normalized;
+            float magnitude = vec.magnitude;
+
+            Assert(magnitude == 5.0f, "Vector3 크기");
+            Assert(Math.Abs(normalized.magnitude - 1.0f) < 0.01f, "정규화된 벡터의 크기는 1");
+            PassTest("Vector3 정규화");
+        }
+        catch (Exception ex)
+        {
+            FailTest("Vector3 정규화", ex.Message);
+        }
+
+        // Test 3: Quaternion 기본
+        try
+        {
+            var quat = new SFQuaternion(0, 0, 0, 1);
+            Assert(quat.x == 0 && quat.y == 0 && quat.z == 0 && quat.w == 1, "Quaternion 항등원소");
+            PassTest("Quaternion 기본");
+        }
+        catch (Exception ex)
+        {
+            FailTest("Quaternion 기본", ex.Message);
+        }
+    }
+
+    private static void TestGameObjectLifecycle()
+    {
+        PrintTestCategory("GameObject - Lifecycle Tests");
+
+        try
+        {
+            // Test 1: GameObject 생성
+            var go = new SFGameObject("TestObject");
+            Assert(go.name == "TestObject", "GameObject 이름 설정");
+            Assert(go.activeSelf == true, "GameObject 기본값은 활성");
+            PassTest("GameObject 생성");
+
+            // Test 2: GameObject 이름 변경
+            go.name = "RenamedObject";
+            Assert(go.name == "RenamedObject", "GameObject 이름 변경");
+            PassTest("GameObject 이름 변경");
+
+            // Test 3: GameObject 활성화 상태 변경
+            go.SetActive(false);
+            Assert(go.activeSelf == false, "GameObject 비활성화");
+            go.SetActive(true);
+            Assert(go.activeSelf == true, "GameObject 활성화");
+            PassTest("GameObject 활성화 상태");
+
+            // Test 4: GameObject Transform 접근
+            var transform = go.transform;
+            Assert(transform != null, "GameObject에서 Transform 접근");
+            Assert(transform.name == "TestObject", "Transform 이름은 GameObject와 동일");
+            PassTest("GameObject Transform 접근");
+        }
+        catch (Exception ex)
+        {
+            FailTest("GameObject 생명주기", ex.Message);
+        }
+    }
+
+    private static void TestTransformOperations()
+    {
+        PrintTestCategory("Transform - Operations Tests");
+
+        try
+        {
+            var transform = new SFTransform("TestTransform");
+
+            // Test 1: 위치 설정 및 변경
+            transform.position = new SFVector3(10, 20, 30);
+            Assert(transform.position.x == 10 && transform.position.y == 20 && transform.position.z == 30,
+                "Transform 위치 설정");
+            PassTest("Transform 위치 설정");
+
+            // Test 2: 이동
+            transform.Translate(5, 5, 5);
+            Assert(transform.position.x == 15 && transform.position.y == 25 && transform.position.z == 35,
+                "Transform 이동");
+            PassTest("Transform 이동");
+
+            // Test 3: 회전
+            transform.Rotate(90, 0, 0);
+            Assert(transform.rotation != null, "Transform 회전");
+            PassTest("Transform 회전");
+
+            // Test 4: 스케일
+            transform.scale = new SFVector3(2, 2, 2);
+            Assert(transform.scale.x == 2 && transform.scale.y == 2 && transform.scale.z == 2,
+                "Transform 스케일 설정");
+            PassTest("Transform 스케일");
+
+            // Test 5: LookAt
+            var target = new SFVector3(100, 100, 100);
+            transform.LookAt(target);
+            Assert(transform.rotation != null, "Transform LookAt");
+            PassTest("Transform LookAt");
+        }
+        catch (Exception ex)
+        {
+            FailTest("Transform 연산", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region Integration Tests
+
+    private static void TestIntegrationWorkflow()
+    {
+        PrintTestCategory("Integration - Complete Workflow Tests");
+
+        try
+        {
+            var context = new SFContext("Game.MOD", "PlayerController");
+            var executor = new ScriptExecutor(context);
+
+            // 워크플로우: 플레이어 생성 → 변수 설정 → 위치 변경 → 상태 관리
+
+            // Step 1: 플레이어 GameObject 생성
+            var createResult = executor.Execute("UnityEngine.GameObject.Create('Player')");
+            Assert(createResult.Success, "플레이어 생성 성공");
+            PassTest("워크플로우 - 객체 생성");
+
+            // Step 2: 플레이어 속성을 변수로 저장
+            executor.SetVariable("playerName", "MainCharacter");
+            executor.SetVariable("playerHealth", 100);
+            executor.SetVariable("playerMana", 50);
+
+            var health = executor.GetVariable("playerHealth");
+            Assert((int)health == 100, "플레이어 상태 변수 저장");
+            PassTest("워크플로우 - 상태 저장");
+
+            // Step 3: 플레이어 위치 설정 (GameObject 생성 후 transform 접근)
+            if (createResult.Result is SFGameObject player)
+            {
+                var playerTransform = player.transform;
+                playerTransform.position = new SFVector3(10, 0, 10);
+                Assert(playerTransform.position.x == 10, "플레이어 위치 설정");
+                PassTest("워크플로우 - 위치 설정");
+            }
+
+            // Step 4: 연속 명령 실행
+            var results = executor.ExecuteSequence(
+                "UnityEngine.GameObject.Create('Enemy1')",
+                "UnityEngine.GameObject.Create('Enemy2')",
+                "UnityEngine.GameObject.Create('Enemy3')"
+            );
+
+            int successCount = 0;
+            foreach (var result in results)
+            {
+                if (result.Success) successCount++;
+            }
+            Assert(successCount == 3, "3개의 적 생성");
+            PassTest("워크플로우 - 연속 명령");
+
+            // Step 5: 최종 상태 확인
+            var finalName = executor.GetVariable("playerName");
+            var finalHealth = executor.GetVariable("playerHealth");
+            Assert(finalName.ToString() == "MainCharacter" && (int)finalHealth == 100,
+                "최종 상태 확인");
+            PassTest("워크플로우 - 최종 상태");
+        }
+        catch (Exception ex)
+        {
+            FailTest("통합 워크플로우", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region Test Utilities
+
+    private static void Assert(bool condition, string message)
+    {
+        if (!condition)
+            throw new AssertionException(message);
+    }
+
+    private static void PassTest(string testName)
+    {
+        passedTests++;
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  ✓ {testName}");
+        Console.ResetColor();
+    }
+
+    private static void FailTest(string testName, string reason)
+    {
+        failedTests++;
+        failedTestNames.Add($"{testName}: {reason}");
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"  ✗ {testName}");
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"    사유: {reason}");
+        Console.ResetColor();
+    }
+
+    private static void PrintTestCategory(string categoryName)
+    {
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine($"\n▶ {categoryName}");
+        Console.ResetColor();
+    }
+
+    private static void PrintTestSummary()
+    {
+        Console.WriteLine("\n════════════════════════════════════════════════════════════");
+        Console.WriteLine("                        테스트 결과 요약                      ");
+        Console.WriteLine("════════════════════════════════════════════════════════════");
+
+        int totalTests = passedTests + failedTests;
+        double passRate = totalTests > 0 ? (passedTests * 100.0 / totalTests) : 0;
+
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine($"  통과: {passedTests}");
+        Console.ResetColor();
+
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine($"  실패: {failedTests}");
+        Console.ResetColor();
+
+        Console.WriteLine($"  총합: {totalTests}");
+        Console.WriteLine($"  성공률: {passRate:F1}%");
+
+        if (failedTestNames.Count > 0)
+        {
+            Console.WriteLine("\n실패한 테스트:");
+            foreach (var failedTest in failedTestNames)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  - {failedTest}");
+                Console.ResetColor();
+            }
+        }
+
+        Console.WriteLine("\n════════════════════════════════════════════════════════════");
+    }
+
+    #endregion
 }
 
-
-namespace Test.Sample
+/// <summary>
+/// 테스트 검증 실패 예외
+/// </summary>
+public class AssertionException : Exception
 {
-    [SFCSharp]
-    public class TestClass
-    {
-        public void Run()
-        {
-        }
-
-        public void Test()
-        {
-            Console.WriteLine("Hello");
-        }
-    }
+    public AssertionException(string message) : base(message) { }
 }

@@ -1,18 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir \"C:\\git\\SFCSharp\\SFCSharp\" /B)",
-      "Read(//c/git/SFCSharp/**)",
-      "Bash(tree:*)",
-      "Bash(git -C \"C:\\git\\SFCSharp\\SFCSharp\" log --oneline -10)",
-      "Bash(git -C \"C:\\git\\SFCSharp\\SFCSharp\" log --format=\"%H|%an|%ae|%ai|%s\" -5)",
-      "Bash(dir:*)",
-      "Bash(dotnet build:*)",
-      "Bash(find:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(dotnet run:*)",
-      "Bash(ls -la \"C:\\git\\SFCSharp\\SFCSharp\\Attributes\"\" 2>/dev/null || echo \"Not found \")"
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

@@ -24,12 +24,13 @@ namespace SFCSharp.Runtime
 
             // 메서드명과 인자 분리
             // 패턴: methodName(arg1, arg2, ...)
-            var match = Regex.Match(command, @"^([\w\.]+)\s*\((.*)\)$");
+            // 메서드명에 공백이 있을 수 있지만 점(.)으로만 구분되어야 함
+            var match = Regex.Match(command, @"^([\w\s\.]+?)\s*\((.*)\)$");
 
             if (!match.Success)
                 throw new InvalidOperationException($"Invalid command format: {command}");
 
-            string methodPath = match.Groups[1].Value;
+            string methodPath = Regex.Replace(match.Groups[1].Value, @"\s+", "").Trim();
             string argsString = match.Groups[2].Value;
 
             string[] methodNames = methodPath.Split('.');
@@ -128,13 +129,13 @@ namespace SFCSharp.Runtime
             if (bool.TryParse(value, out bool boolValue))
                 return boolValue;
 
+            // Integer (먼저 체크해야 float로 변환되지 않음)
+            if (int.TryParse(value, out int intValue))
+                return intValue;
+
             // Float
             if (float.TryParse(value, out float floatValue))
                 return floatValue;
-
-            // Integer
-            if (int.TryParse(value, out int intValue))
-                return intValue;
 
             // Double
             if (double.TryParse(value, out double doubleValue))
