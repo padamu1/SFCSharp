@@ -1,0 +1,14 @@
+// BasicGameObject.script
+// 기본 GameObject 생성 및 관리 테스트
+
+// 플레이어 객체 생성
+UnityEngine.GameObject.Create('Player')
+
+// 적 객체 3개 생성
+UnityEngine.GameObject.Create('Enemy1')
+UnityEngine.GameObject.Create('Enemy2')
+UnityEngine.GameObject.Create('Enemy3')
+
+// 아이템 객체 생성
+UnityEngine.GameObject.Create('Item_Potion')
+UnityEngine.GameObject.Create('Item_Gold')

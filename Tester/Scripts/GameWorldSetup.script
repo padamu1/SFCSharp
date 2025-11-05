@@ -1,0 +1,31 @@
+// GameWorldSetup.script
+// 게임 세계 초기 설정 스크립트
+
+// === 플레이어 관련 ===
+UnityEngine.GameObject.Create('Player')
+UnityEngine.GameObject.Create('PlayerUI')
+UnityEngine.GameObject.Create('PlayerCamera')
+
+// === 적 관련 ===
+UnityEngine.GameObject.Create('Goblin1')
+UnityEngine.GameObject.Create('Goblin2')
+UnityEngine.GameObject.Create('Goblin3')
+UnityEngine.GameObject.Create('Orc')
+UnityEngine.GameObject.Create('Dragon')
+
+// === 환경 객체 ===
+UnityEngine.GameObject.Create('Tree')
+UnityEngine.GameObject.Create('Rock')
+UnityEngine.GameObject.Create('Water')
+UnityEngine.GameObject.Create('Grass')
+
+// === 아이템 ===
+UnityEngine.GameObject.Create('Potion')
+UnityEngine.GameObject.Create('Sword')
+UnityEngine.GameObject.Create('Shield')
+UnityEngine.GameObject.Create('Gold')
+
+// === NPC ===
+UnityEngine.GameObject.Create('Merchant')
+UnityEngine.GameObject.Create('Quest_NPC')
+UnityEngine.GameObject.Create('Blacksmith')

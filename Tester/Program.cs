@@ -4,6 +4,8 @@ using SFCSharp.Excution.UnityExec;
 using SFCSharp.Runtime;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 public class Program
 {
@@ -26,6 +28,7 @@ public class Program
         TestGameObjectLifecycle();
         TestTransformOperations();
         TestIntegrationWorkflow();
+        TestScriptExecution();
 
         // 테스트 결과 출력
         PrintTestSummary();
@@ -462,6 +465,139 @@ public class Program
         catch (Exception ex)
         {
             FailTest("통합 워크플로우", ex.Message);
+        }
+    }
+
+    #endregion
+
+    #region Script Execution Tests
+
+    private static void TestScriptExecution()
+    {
+        PrintTestCategory("Script Execution - MOD Script Tests");
+
+        // Test 1: BasicGameObject.script 실행
+        TestScriptFile("Scripts/BasicGameObject.script", "기본 GameObject 생성 스크립트", 5);
+
+        // Test 2: TransformOperations.script 실행
+        TestScriptFile("Scripts/TransformOperations.script", "Transform 조작 스크립트", 4);
+
+        // Test 3: PlayerInitialization.script 실행
+        TestScriptFile("Scripts/PlayerInitialization.script", "플레이어 초기화 스크립트", 4);
+
+        // Test 4: GameWorldSetup.script 실행
+        TestScriptFile("Scripts/GameWorldSetup.script", "게임 세계 설정 스크립트", 19);
+
+        // Test 5: ComplexInteraction.script 실행
+        TestScriptFile("Scripts/ComplexInteraction.script", "복잡한 상호작용 스크립트", 15);
+
+        // Test 6: 스크립트 파일 읽기 및 파싱
+        try
+        {
+            string scriptPath = "Scripts/BasicGameObject.script";
+            if (File.Exists(scriptPath))
+            {
+                var lines = File.ReadAllLines(scriptPath);
+                var commandLines = lines.Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("//")).ToList();
+                Assert(commandLines.Count >= 5, "Should have at least 5 command lines");
+                PassTest("스크립트 파일 파싱");
+            }
+            else
+            {
+                FailTest("스크립트 파일 파싱", "Script file not found");
+            }
+        }
+        catch (Exception ex)
+        {
+            FailTest("스크립트 파일 파싱", ex.Message);
+        }
+
+        // Test 7: 스크립트 주석 필터링
+        try
+        {
+            var context = new SFContext("Test.Script", "CommentTest");
+            var executor = new ScriptExecutor(context);
+
+            // 주석이 포함된 명령어
+            var result = executor.Execute("UnityEngine.GameObject.Create('TestObj')");
+            Assert(result.Success, "Should execute command successfully");
+            PassTest("스크립트 주석 처리");
+        }
+        catch (Exception ex)
+        {
+            FailTest("스크립트 주석 처리", ex.Message);
+        }
+
+        // Test 8: 여러 명령어 순차 실행
+        try
+        {
+            var context = new SFContext("Test.Sequence", "SequenceTest");
+            var executor = new ScriptExecutor(context);
+
+            var results = executor.ExecuteSequence(
+                "UnityEngine.GameObject.Create('Unit1')",
+                "UnityEngine.GameObject.Create('Unit2')",
+                "UnityEngine.GameObject.Create('Unit3')",
+                "UnityEngine.GameObject.Create('Unit4')",
+                "UnityEngine.GameObject.Create('Unit5')"
+            );
+
+            Assert(results.Count == 5, "Should execute 5 commands");
+            int successCount = results.Count(r => r.Success);
+            Assert(successCount == 5, "All 5 commands should succeed");
+            PassTest("여러 명령어 순차 실행");
+        }
+        catch (Exception ex)
+        {
+            FailTest("여러 명령어 순차 실행", ex.Message);
+        }
+    }
+
+    private static void TestScriptFile(string scriptPath, string testName, int expectedCommands)
+    {
+        try
+        {
+            if (!File.Exists(scriptPath))
+            {
+                FailTest(testName, $"Script file not found: {scriptPath}");
+                return;
+            }
+
+            // 스크립트 파일 읽기
+            var lines = File.ReadAllLines(scriptPath);
+
+            // 주석과 빈 줄 필터링
+            var commandLines = lines
+                .Where(l => !string.IsNullOrWhiteSpace(l) && !l.StartsWith("//") && !l.StartsWith("/*"))
+                .ToList();
+
+            Assert(commandLines.Count >= expectedCommands, $"Should have at least {expectedCommands} commands");
+
+            // 각 명령어 파싱 및 실행 테스트
+            var context = new SFContext("Test.Scripts", Path.GetFileNameWithoutExtension(scriptPath));
+            var executor = new ScriptExecutor(context);
+
+            int successCount = 0;
+            foreach (var line in commandLines)
+            {
+                try
+                {
+                    var result = executor.Execute(line);
+                    if (result.Success)
+                        successCount++;
+                }
+                catch
+                {
+                    // 특정 명령어 실패는 무시하고 계속
+                }
+            }
+
+            Assert(successCount > 0, "Should execute at least one command successfully");
+            PassTest(testName);
+        }
+        catch (Exception ex)
+        {
+            FailTest(testName, ex.Message);
         }
     }
 

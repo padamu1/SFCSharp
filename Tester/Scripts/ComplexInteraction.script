@@ -1,0 +1,27 @@
+// ComplexInteraction.script
+// 복잡한 게임 로직 및 상호작용 테스트
+
+// 플레이어 생성
+UnityEngine.GameObject.Create('Player')
+
+// 퀘스트 관련 객체
+UnityEngine.GameObject.Create('QuestGiver')
+UnityEngine.GameObject.Create('QuestTarget')
+UnityEngine.GameObject.Create('QuestReward')
+
+// 던전 레이아웃
+UnityEngine.GameObject.Create('DungeonEntrance')
+UnityEngine.GameObject.Create('DungeonRoom1')
+UnityEngine.GameObject.Create('DungeonRoom2')
+UnityEngine.GameObject.Create('DungeonBoss')
+UnityEngine.GameObject.Create('DungeonTreasure')
+
+// 전투 시스템
+UnityEngine.GameObject.Create('PlayerParty')
+UnityEngine.GameObject.Create('EnemyParty')
+
+// 상점
+UnityEngine.GameObject.Create('Shop')
+UnityEngine.GameObject.Create('Shop_Equipment')
+UnityEngine.GameObject.Create('Shop_Potion')
+UnityEngine.GameObject.Create('Shop_Equipment_Armor')

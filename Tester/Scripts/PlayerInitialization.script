@@ -1,0 +1,17 @@
+// PlayerInitialization.script
+// 플레이어 초기화 스크립트
+
+// 플레이어 생성
+UnityEngine.GameObject.Create('MainCharacter')
+
+// 플레이어 속성 변수 설정 (변수는 런타임에 접근됨)
+// playerName='MainCharacter'
+// playerLevel=1
+// playerHealth=100
+// playerMana=50
+// playerPosition=Vector3(0, 0, 0)
+
+// 플레이어 관련 오브젝트 생성
+UnityEngine.GameObject.Create('PlayerWeapon')
+UnityEngine.GameObject.Create('PlayerShield')
+UnityEngine.GameObject.Create('PlayerArmor')
