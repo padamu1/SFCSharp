@@ -1,6 +1,6 @@
 using SFCSharp.Context;
-using SFCSharp.Excution;
-using SFCSharp.Excution.UnityExec;
+using SFCSharp.Execution;
+using SFCSharp.Execution.UnityExec;
 using System;
 using System.Collections.Generic;
 

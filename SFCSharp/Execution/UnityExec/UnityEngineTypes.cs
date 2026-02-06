@@ -1,6 +1,6 @@
 using System;
 
-namespace SFCSharp.Excution.UnityExec
+namespace SFCSharp.Execution.UnityExec
 {
     /// <summary>
     /// UnityEngine 네임스페이스의 기본 타입들을 래핑하는 클래스

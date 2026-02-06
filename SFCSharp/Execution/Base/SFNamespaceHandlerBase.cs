@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution.Base
+namespace SFCSharp.Execution.Base
 {
     public abstract class SFNamespaceHandlerBase : INamespaceHandler
     {

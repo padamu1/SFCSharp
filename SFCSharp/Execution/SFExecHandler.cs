@@ -1,8 +1,8 @@
-﻿using SFCSharp.Excution.Base;
-using SFCSharp.Excution.UnityExec;
+﻿using SFCSharp.Execution.Base;
+using SFCSharp.Execution.UnityExec;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution
+namespace SFCSharp.Execution
 {
     /// <summary>
     /// 최상위 네임스페이스 핸들러

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution.Base
+namespace SFCSharp.Execution.Base
 {
     public abstract class SFMethodHandlerBase : SFNamespaceHandlerBase
     {
@@ -28,7 +28,7 @@ namespace SFCSharp.Excution.Base
 
             if (_methodHandlerDic.ContainsKey(methodNames[offset]))
             {
-                _methodHandlerDic[methodNames[offset]].Excute(execCallback, args);
+                _methodHandlerDic[methodNames[offset]].Execute(execCallback, args);
                 return true;
             }
 

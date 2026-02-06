@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SFCSharp.Excution
+namespace SFCSharp.Execution
 {
     /// <summary>
     /// SFCSharp 명령어 실행 관리자 (싱글톤)
@@ -9,8 +9,8 @@ namespace SFCSharp.Excution
     public class SFExecManager
     {
         private static SFExecManager _instance;
+        private static readonly object _lock = new object();
         private readonly INamespaceHandler _rootHandler;
-        private readonly object _lock = new object();
 
         public static SFExecManager Instance
         {
@@ -18,7 +18,7 @@ namespace SFCSharp.Excution
             {
                 if (_instance == null)
                 {
-                    lock (new object())
+                    lock (_lock)
                     {
                         if (_instance == null)
                         {
@@ -66,20 +66,13 @@ namespace SFCSharp.Excution
                 throw new ArgumentException("Method path cannot be null or empty");
 
             object result = null;
-            object lockObj = new object();
 
             ExecWrapper(methodPath, (obj) =>
             {
-                lock (lockObj)
-                {
-                    result = obj;
-                }
+                result = obj;
             }, args);
 
-            lock (lockObj)
-            {
-                return result;
-            }
+            return result;
         }
     }
 }

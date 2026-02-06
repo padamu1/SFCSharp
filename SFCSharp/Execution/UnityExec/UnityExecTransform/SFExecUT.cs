@@ -1,8 +1,8 @@
-﻿using SFCSharp.Excution.Base;
+﻿using SFCSharp.Execution.Base;
 using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution.UnityExec.UnityExecTransform
+namespace SFCSharp.Execution.UnityExec.UnityExecTransform
 {
     /// <summary>
     /// UnityEngine.Transform 메서드 핸들러
@@ -29,7 +29,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecTransform
         // Translate 메서드 핸들러
         private class TranslateHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -56,7 +56,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecTransform
         // Rotate 메서드 핸들러
         private class RotateHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -83,7 +83,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecTransform
         // LookAt 메서드 핸들러
         private class LookAtHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -116,7 +116,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecTransform
         // GetPosition 메서드 핸들러
         private class GetPositionHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -138,7 +138,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecTransform
         // SetPosition 메서드 핸들러
         private class SetPositionHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
