@@ -345,6 +345,22 @@ namespace SFCSharp.Build
             result.AppendLine($"// Generated at {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
             result.AppendLine();
 
+            // [SerializeField] 필드 추출 및 메타데이터로 저장
+            var fieldMatches = Regex.Matches(csharpCode,
+                @"\[SerializeField\]\s*(?:private|protected|public)?\s*(\w+)\s+(\w+)\s*(?:=\s*([^;]+))?\s*;");
+
+            foreach (Match fieldMatch in fieldMatches)
+            {
+                var fieldType = fieldMatch.Groups[1].Value;
+                var fieldName = fieldMatch.Groups[2].Value;
+                var defaultValue = fieldMatch.Groups[3].Success ? fieldMatch.Groups[3].Value.Trim() : GetDefaultValue(fieldType);
+
+                result.AppendLine($"// @field:{fieldType} {fieldName} = {defaultValue}");
+            }
+
+            if (fieldMatches.Count > 0)
+                result.AppendLine();
+
             // [SFCSharp] 메서드 찾기
             var methodMatches = Regex.Matches(csharpCode,
                 @"public\s+void\s+(\w+)\s*\(\s*\)\s*\{([^}]*)\}",
@@ -364,6 +380,22 @@ namespace SFCSharp.Build
             }
 
             return result.ToString();
+        }
+
+        /// <summary>
+        /// 타입에 대한 기본값을 반환합니다
+        /// </summary>
+        private string GetDefaultValue(string typeName)
+        {
+            switch (typeName.ToLower())
+            {
+                case "int": return "0";
+                case "float": return "0";
+                case "double": return "0";
+                case "bool": return "false";
+                case "string": return "\"\"";
+                default: return "null";
+            }
         }
 
         /// <summary>

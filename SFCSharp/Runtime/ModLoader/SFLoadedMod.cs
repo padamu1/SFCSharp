@@ -27,6 +27,7 @@ namespace SFCSharp.Runtime.ModLoader
             _scriptCommands = new Dictionary<string, List<string>>();
 
             ParseScripts(scripts);
+            InjectSerializedFields(scripts);
             _isLoaded = true;
         }
 
@@ -111,6 +112,24 @@ namespace SFCSharp.Runtime.ModLoader
             _isLoaded = false;
             _scriptCommands.Clear();
             _context.ClearVariables();
+        }
+
+        /// <summary>
+        /// 스크립트에 포함된 SerializeField 메타데이터를 파싱하여 변수로 주입합니다.
+        /// 빌드 시 인스펙터에서 설정한 값이 // @field:타입 이름 = 값 형식으로 저장됩니다.
+        /// </summary>
+        private void InjectSerializedFields(Dictionary<string, string> scripts)
+        {
+            foreach (var entry in scripts)
+            {
+                var fields = SFSerializedFieldParser.Parse(entry.Value);
+                var variables = SFSerializedFieldParser.ConvertAll(fields);
+
+                foreach (var variable in variables)
+                {
+                    _context.SetVariable(variable.Key, variable.Value);
+                }
+            }
         }
 
         /// <summary>
