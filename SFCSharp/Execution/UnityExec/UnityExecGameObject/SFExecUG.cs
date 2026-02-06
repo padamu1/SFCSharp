@@ -19,6 +19,8 @@ namespace SFCSharp.Execution.UnityExec.UnityExecGameObject
                 {"SetActive", new SetActiveHandler() },
                 {"GetActive", new GetActiveHandler() },
                 {"GetTransform", new GetTransformHandler() },
+                {"AddComponent", new AddComponentHandler() },
+                {"GetComponent", new GetComponentHandler() },
             };
         }
 
@@ -154,6 +156,54 @@ namespace SFCSharp.Execution.UnityExec.UnityExecGameObject
                 catch (Exception ex)
                 {
                     execCallback?.Invoke(new Exception($"GameObject.GetTransform error: {ex.Message}", ex));
+                }
+            }
+        }
+
+        // AddComponent 메서드 핸들러
+        private class AddComponentHandler : IMethodHandler
+        {
+            public void Execute(Action<object> execCallback, params object[] args)
+            {
+                try
+                {
+                    if (args.Length < 2)
+                        throw new ArgumentException("AddComponent requires 2 arguments: gameObject, componentType");
+
+                    if (!(args[0] is SFGameObject gameObject))
+                        throw new ArgumentException("First argument must be a GameObject");
+
+                    string typeName = args[1].ToString();
+                    var component = gameObject.AddComponent(typeName);
+                    execCallback?.Invoke(component);
+                }
+                catch (Exception ex)
+                {
+                    execCallback?.Invoke(new Exception($"GameObject.AddComponent error: {ex.Message}", ex));
+                }
+            }
+        }
+
+        // GetComponent 메서드 핸들러
+        private class GetComponentHandler : IMethodHandler
+        {
+            public void Execute(Action<object> execCallback, params object[] args)
+            {
+                try
+                {
+                    if (args.Length < 2)
+                        throw new ArgumentException("GetComponent requires 2 arguments: gameObject, componentType");
+
+                    if (!(args[0] is SFGameObject gameObject))
+                        throw new ArgumentException("First argument must be a GameObject");
+
+                    string typeName = args[1].ToString();
+                    var component = gameObject.GetComponent(typeName);
+                    execCallback?.Invoke(component);
+                }
+                catch (Exception ex)
+                {
+                    execCallback?.Invoke(new Exception($"GameObject.GetComponent error: {ex.Message}", ex));
                 }
             }
         }

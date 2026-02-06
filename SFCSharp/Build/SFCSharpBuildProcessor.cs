@@ -417,6 +417,61 @@ namespace SFCSharp.Build
                 m => $"UnityEngine.GameObject.Create('{m.Groups[1].Value}')"
             );
 
+            // GetComponent<T>() -> UnityEngine.GameObject.GetComponent($var, 'T')
+            result = Regex.Replace(result,
+                @"(\w+)\.GetComponent<(\w+)>\s*\(\s*\)",
+                m => $"UnityEngine.GameObject.GetComponent(${m.Groups[1].Value}, '{m.Groups[2].Value}')"
+            );
+
+            // AddComponent<T>() -> UnityEngine.GameObject.AddComponent($var, 'T')
+            result = Regex.Replace(result,
+                @"(\w+)\.AddComponent<(\w+)>\s*\(\s*\)",
+                m => $"UnityEngine.GameObject.AddComponent(${m.Groups[1].Value}, '{m.Groups[2].Value}')"
+            );
+
+            // .text = "value" -> UnityEngine.UI.Text.SetText($var, 'value')
+            result = Regex.Replace(result,
+                @"(\w+)\.text\s*=\s*['\x22]([^'\x22]*)['\x22]\s*;",
+                m => $"UnityEngine.UI.Text.SetText(${m.Groups[1].Value}, '{m.Groups[2].Value}')"
+            );
+
+            // .fontSize = N -> UnityEngine.UI.Text.SetFontSize($var, N)
+            result = Regex.Replace(result,
+                @"(\w+)\.fontSize\s*=\s*(\d+)\s*;",
+                m => $"UnityEngine.UI.Text.SetFontSize(${m.Groups[1].Value}, {m.Groups[2].Value})"
+            );
+
+            // .color = Color.xxx -> UnityEngine.UI.Text.SetColor($var, UnityEngine.Color.xxx())
+            // or .color = Color.xxx for Image
+            result = Regex.Replace(result,
+                @"(\w+)\.color\s*=\s*Color\.(\w+)\s*;",
+                m => $"UnityEngine.UI.Text.SetColor(${m.Groups[1].Value}, UnityEngine.Color.{m.Groups[2].Value}())"
+            );
+
+            // .fillAmount = N -> UnityEngine.UI.Image.SetFillAmount($var, N)
+            result = Regex.Replace(result,
+                @"(\w+)\.fillAmount\s*=\s*([0-9.]+)f?\s*;",
+                m => $"UnityEngine.UI.Image.SetFillAmount(${m.Groups[1].Value}, {m.Groups[2].Value})"
+            );
+
+            // Debug.Log("message") -> UnityEngine.Debug.Log('message')
+            result = Regex.Replace(result,
+                @"Debug\.Log\s*\(\s*['\x22]([^'\x22]*)['\x22]\s*\)\s*;",
+                m => $"UnityEngine.Debug.Log('{m.Groups[1].Value}')"
+            );
+
+            // Debug.LogWarning("message") -> UnityEngine.Debug.LogWarning('message')
+            result = Regex.Replace(result,
+                @"Debug\.LogWarning\s*\(\s*['\x22]([^'\x22]*)['\x22]\s*\)\s*;",
+                m => $"UnityEngine.Debug.LogWarning('{m.Groups[1].Value}')"
+            );
+
+            // Debug.LogError("message") -> UnityEngine.Debug.LogError('message')
+            result = Regex.Replace(result,
+                @"Debug\.LogError\s*\(\s*['\x22]([^'\x22]*)['\x22]\s*\)\s*;",
+                m => $"UnityEngine.Debug.LogError('{m.Groups[1].Value}')"
+            );
+
             // 주석 제거
             result = Regex.Replace(result, @"//.*$", "", RegexOptions.Multiline);
 
