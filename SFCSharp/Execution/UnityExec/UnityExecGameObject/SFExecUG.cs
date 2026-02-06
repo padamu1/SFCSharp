@@ -1,8 +1,8 @@
-using SFCSharp.Excution.Base;
+using SFCSharp.Execution.Base;
 using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
+namespace SFCSharp.Execution.UnityExec.UnityExecGameObject
 {
     /// <summary>
     /// UnityEngine.GameObject 메서드 핸들러
@@ -30,7 +30,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // Create 메서드 핸들러 (새로운 GameObject 생성)
         private class CreateHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -48,7 +48,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // GetName 메서드 핸들러
         private class GetNameHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -70,7 +70,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // SetName 메서드 핸들러
         private class SetNameHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -93,7 +93,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // SetActive 메서드 핸들러
         private class SetActiveHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -117,7 +117,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // GetActive 메서드 핸들러
         private class GetActiveHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -139,7 +139,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecGameObject
         // GetTransform 메서드 핸들러
         private class GetTransformHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {

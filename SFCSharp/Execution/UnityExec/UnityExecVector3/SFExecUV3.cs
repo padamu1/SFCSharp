@@ -1,8 +1,8 @@
-using SFCSharp.Excution.Base;
+using SFCSharp.Execution.Base;
 using System;
 using System.Collections.Generic;
 
-namespace SFCSharp.Excution.UnityExec.UnityExecVector3
+namespace SFCSharp.Execution.UnityExec.UnityExecVector3
 {
     /// <summary>
     /// UnityEngine.Vector3 메서드 핸들러
@@ -32,7 +32,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Create 메서드 핸들러 (새로운 Vector3 생성)
         private class CreateHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -53,7 +53,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Zero 메서드 핸들러
         private class ZeroHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -69,7 +69,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // One 메서드 핸들러
         private class OneHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -85,7 +85,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Distance 메서드 핸들러
         private class DistanceHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -111,7 +111,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Magnitude 메서드 핸들러
         private class MagnitudeHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -133,7 +133,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Normalized 메서드 핸들러
         private class NormalizedHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -155,7 +155,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Dot 메서드 핸들러
         private class DotHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {
@@ -181,7 +181,7 @@ namespace SFCSharp.Excution.UnityExec.UnityExecVector3
         // Cross 메서드 핸들러
         private class CrossHandler : IMethodHandler
         {
-            public void Excute(Action<object> execCallback, params object[] args)
+            public void Execute(Action<object> execCallback, params object[] args)
             {
                 try
                 {

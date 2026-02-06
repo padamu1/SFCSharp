@@ -151,7 +151,7 @@ namespace SFCSharp.Runtime
                     float.TryParse(parts[1], out float y) &&
                     float.TryParse(parts[2], out float z))
                 {
-                    return new Excution.UnityExec.SFVector3(x, y, z);
+                    return new Execution.UnityExec.SFVector3(x, y, z);
                 }
             }
 

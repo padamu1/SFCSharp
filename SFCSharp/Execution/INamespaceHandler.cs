@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SFCSharp.Excution
+namespace SFCSharp.Execution
 {
     public interface INamespaceHandler
     {
