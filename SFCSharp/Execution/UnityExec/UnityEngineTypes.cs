@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace SFCSharp.Execution.UnityExec
 {
@@ -128,6 +129,132 @@ namespace SFCSharp.Execution.UnityExec
         }
 
         public override string ToString() => $"({x}, {y}, {z}, {w})";
+    }
+
+    #endregion
+
+    #region Color
+
+    /// <summary>
+    /// UnityEngine.Color를 래핑하는 클래스
+    /// </summary>
+    public class SFColor
+    {
+        public float r { get; set; }
+        public float g { get; set; }
+        public float b { get; set; }
+        public float a { get; set; }
+
+        public SFColor() : this(0, 0, 0, 1) { }
+
+        public SFColor(float r, float g, float b, float a = 1f)
+        {
+            this.r = r;
+            this.g = g;
+            this.b = b;
+            this.a = a;
+        }
+
+        public static SFColor red => new SFColor(1, 0, 0, 1);
+        public static SFColor green => new SFColor(0, 1, 0, 1);
+        public static SFColor blue => new SFColor(0, 0, 1, 1);
+        public static SFColor white => new SFColor(1, 1, 1, 1);
+        public static SFColor black => new SFColor(0, 0, 0, 1);
+        public static SFColor yellow => new SFColor(1, 0.92f, 0.016f, 1);
+        public static SFColor cyan => new SFColor(0, 1, 1, 1);
+        public static SFColor magenta => new SFColor(1, 0, 1, 1);
+        public static SFColor gray => new SFColor(0.5f, 0.5f, 0.5f, 1);
+        public static SFColor clear => new SFColor(0, 0, 0, 0);
+
+        public override string ToString() => $"RGBA({r}, {g}, {b}, {a})";
+    }
+
+    #endregion
+
+    #region Component
+
+    /// <summary>
+    /// UnityEngine.Component 기반 클래스
+    /// 모든 컴포넌트의 공통 베이스입니다.
+    /// </summary>
+    public abstract class SFComponent
+    {
+        public SFGameObject gameObject { get; internal set; }
+        public SFTransform transform => gameObject?.transform;
+        public bool enabled { get; set; } = true;
+
+        /// <summary>
+        /// 컴포넌트 타입 이름을 반환합니다.
+        /// </summary>
+        public abstract string ComponentTypeName { get; }
+    }
+
+    #endregion
+
+    #region UI Components
+
+    /// <summary>
+    /// UnityEngine.UI.Text를 래핑하는 컴포넌트
+    /// </summary>
+    public class SFText : SFComponent
+    {
+        public override string ComponentTypeName => "Text";
+
+        public string text { get; set; } = "";
+        public int fontSize { get; set; } = 14;
+        public SFColor color { get; set; } = SFColor.black;
+        public TextAnchor alignment { get; set; } = TextAnchor.UpperLeft;
+        public FontStyle fontStyle { get; set; } = FontStyle.Normal;
+
+        public override string ToString() => $"Text(\"{text}\", size={fontSize})";
+    }
+
+    /// <summary>
+    /// UnityEngine.UI.Image를 래핑하는 컴포넌트
+    /// </summary>
+    public class SFImage : SFComponent
+    {
+        public override string ComponentTypeName => "Image";
+
+        public SFColor color { get; set; } = SFColor.white;
+        public float fillAmount { get; set; } = 1.0f;
+        public string spriteName { get; set; }
+        public ImageType type { get; set; } = ImageType.Simple;
+
+        public override string ToString() => $"Image(color={color}, fill={fillAmount})";
+    }
+
+    /// <summary>
+    /// UnityEngine.SpriteRenderer를 래핑하는 컴포넌트
+    /// </summary>
+    public class SFSpriteRenderer : SFComponent
+    {
+        public override string ComponentTypeName => "SpriteRenderer";
+
+        public SFColor color { get; set; } = SFColor.white;
+        public string spriteName { get; set; }
+        public int sortingOrder { get; set; } = 0;
+        public bool flipX { get; set; }
+        public bool flipY { get; set; }
+
+        public override string ToString() => $"SpriteRenderer(sprite={spriteName}, color={color})";
+    }
+
+    public enum TextAnchor
+    {
+        UpperLeft, UpperCenter, UpperRight,
+        MiddleLeft, MiddleCenter, MiddleRight,
+        LowerLeft, LowerCenter, LowerRight
+    }
+
+    public enum FontStyle
+    {
+        Normal, Bold, Italic, BoldAndItalic
+    }
+
+    public enum ImageType
+    {
+        Simple, Sliced, Tiled, Filled
     }
 
     #endregion
@@ -263,13 +390,13 @@ namespace SFCSharp.Execution.UnityExec
         private string _name;
         private bool _active;
         private SFTransform _transform;
+        private readonly Dictionary<string, SFComponent> _components = new Dictionary<string, SFComponent>();
 
         public SFGameObject(string name = "GameObject")
         {
             _name = name;
             _active = true;
             _transform = new SFTransform(name);
-            // 순환 참조 방지: GameObject가 생성될 때 Transform에 자신을 설정
             _transform.SetGameObject(this);
         }
 
@@ -292,7 +419,57 @@ namespace SFCSharp.Execution.UnityExec
             _active = value;
         }
 
-        public override string ToString() => $"GameObject ({_name}) - Active: {_active}, Transform: {_transform}";
+        /// <summary>
+        /// 컴포넌트를 추가합니다. Unity의 AddComponent&lt;T&gt;()에 해당합니다.
+        /// </summary>
+        public SFComponent AddComponent(string typeName)
+        {
+            SFComponent component;
+            switch (typeName)
+            {
+                case "Text":
+                    component = new SFText();
+                    break;
+                case "Image":
+                    component = new SFImage();
+                    break;
+                case "SpriteRenderer":
+                    component = new SFSpriteRenderer();
+                    break;
+                default:
+                    throw new ArgumentException($"Unknown component type: {typeName}");
+            }
+
+            component.gameObject = this;
+            _components[typeName] = component;
+            return component;
+        }
+
+        /// <summary>
+        /// 컴포넌트를 가져옵니다. Unity의 GetComponent&lt;T&gt;()에 해당합니다.
+        /// </summary>
+        public SFComponent GetComponent(string typeName)
+        {
+            return _components.ContainsKey(typeName) ? _components[typeName] : null;
+        }
+
+        /// <summary>
+        /// 컴포넌트가 있는지 확인합니다.
+        /// </summary>
+        public bool HasComponent(string typeName)
+        {
+            return _components.ContainsKey(typeName);
+        }
+
+        /// <summary>
+        /// 컴포넌트를 제거합니다. Unity의 Destroy(component)에 해당합니다.
+        /// </summary>
+        public bool RemoveComponent(string typeName)
+        {
+            return _components.Remove(typeName);
+        }
+
+        public override string ToString() => $"GameObject ({_name}) - Active: {_active}, Components: {_components.Count}";
     }
 
     #endregion

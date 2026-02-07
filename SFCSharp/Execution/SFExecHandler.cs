@@ -1,4 +1,5 @@
 ﻿using SFCSharp.Execution.Base;
+using SFCSharp.Execution.SystemExec;
 using SFCSharp.Execution.UnityExec;
 using System.Collections.Generic;
 
@@ -15,6 +16,7 @@ namespace SFCSharp.Execution
             _namespaceHandlerDic = new Dictionary<string, INamespaceHandler>()
             {
                 {"UnityEngine", new UnityExecHandler() },
+                {"System", new SystemExecHandler() },
             };
         }
     }
