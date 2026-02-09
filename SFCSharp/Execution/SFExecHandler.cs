@@ -1,4 +1,5 @@
 ﻿using SFCSharp.Execution.Base;
+using SFCSharp.Execution.SFCSharpExec;
 using SFCSharp.Execution.SystemExec;
 using SFCSharp.Execution.UnityExec;
 using System.Collections.Generic;
@@ -17,6 +18,7 @@ namespace SFCSharp.Execution
             {
                 {"UnityEngine", new UnityExecHandler() },
                 {"System", new SystemExecHandler() },
+                {"SFCSharp", new SFCSharpExecHandler() },
             };
         }
     }

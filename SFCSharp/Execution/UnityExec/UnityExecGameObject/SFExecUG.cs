@@ -21,6 +21,9 @@ namespace SFCSharp.Execution.UnityExec.UnityExecGameObject
                 {"GetTransform", new GetTransformHandler() },
                 {"AddComponent", new AddComponentHandler() },
                 {"GetComponent", new GetComponentHandler() },
+                {"GetComponents", new GetComponentsHandler() },
+                {"HasComponent", new HasComponentHandler() },
+                {"RemoveComponent", new RemoveComponentHandler() },
             };
         }
 
@@ -204,6 +207,78 @@ namespace SFCSharp.Execution.UnityExec.UnityExecGameObject
                 catch (Exception ex)
                 {
                     execCallback?.Invoke(new Exception($"GameObject.GetComponent error: {ex.Message}", ex));
+                }
+            }
+        }
+
+        // GetComponents 메서드 핸들러 (인터페이스/상속 기반 다중 조회)
+        private class GetComponentsHandler : IMethodHandler
+        {
+            public void Execute(Action<object> execCallback, params object[] args)
+            {
+                try
+                {
+                    if (args.Length < 2)
+                        throw new ArgumentException("GetComponents requires 2 arguments: gameObject, componentType");
+
+                    if (!(args[0] is SFGameObject gameObject))
+                        throw new ArgumentException("First argument must be a GameObject");
+
+                    string typeName = args[1].ToString();
+                    var components = gameObject.GetComponents(typeName);
+                    execCallback?.Invoke(components);
+                }
+                catch (Exception ex)
+                {
+                    execCallback?.Invoke(new Exception($"GameObject.GetComponents error: {ex.Message}", ex));
+                }
+            }
+        }
+
+        // HasComponent 메서드 핸들러
+        private class HasComponentHandler : IMethodHandler
+        {
+            public void Execute(Action<object> execCallback, params object[] args)
+            {
+                try
+                {
+                    if (args.Length < 2)
+                        throw new ArgumentException("HasComponent requires 2 arguments: gameObject, componentType");
+
+                    if (!(args[0] is SFGameObject gameObject))
+                        throw new ArgumentException("First argument must be a GameObject");
+
+                    string typeName = args[1].ToString();
+                    bool result = gameObject.HasComponent(typeName);
+                    execCallback?.Invoke(result);
+                }
+                catch (Exception ex)
+                {
+                    execCallback?.Invoke(new Exception($"GameObject.HasComponent error: {ex.Message}", ex));
+                }
+            }
+        }
+
+        // RemoveComponent 메서드 핸들러
+        private class RemoveComponentHandler : IMethodHandler
+        {
+            public void Execute(Action<object> execCallback, params object[] args)
+            {
+                try
+                {
+                    if (args.Length < 2)
+                        throw new ArgumentException("RemoveComponent requires 2 arguments: gameObject, componentType");
+
+                    if (!(args[0] is SFGameObject gameObject))
+                        throw new ArgumentException("First argument must be a GameObject");
+
+                    string typeName = args[1].ToString();
+                    bool result = gameObject.RemoveComponent(typeName);
+                    execCallback?.Invoke(result);
+                }
+                catch (Exception ex)
+                {
+                    execCallback?.Invoke(new Exception($"GameObject.RemoveComponent error: {ex.Message}", ex));
                 }
             }
         }

@@ -1,3 +1,4 @@
+using SFCSharp.TypeSystem;
 using System;
 using System.Collections.Generic;
 
@@ -384,13 +385,14 @@ namespace SFCSharp.Execution.UnityExec
 
     /// <summary>
     /// UnityEngine.GameObject를 래핑하는 클래스
+    /// 인터페이스 및 상속 기반 컴포넌트 조회를 지원합니다.
     /// </summary>
     public class SFGameObject
     {
         private string _name;
         private bool _active;
         private SFTransform _transform;
-        private readonly Dictionary<string, SFComponent> _components = new Dictionary<string, SFComponent>();
+        private readonly List<SFComponent> _components = new List<SFComponent>();
 
         public SFGameObject(string name = "GameObject")
         {
@@ -421,53 +423,91 @@ namespace SFCSharp.Execution.UnityExec
 
         /// <summary>
         /// 컴포넌트를 추가합니다. Unity의 AddComponent&lt;T&gt;()에 해당합니다.
+        /// SFTypeRegistry를 통해 빌트인 및 커스텀 타입을 모두 지원합니다.
         /// </summary>
         public SFComponent AddComponent(string typeName)
         {
-            SFComponent component;
-            switch (typeName)
-            {
-                case "Text":
-                    component = new SFText();
-                    break;
-                case "Image":
-                    component = new SFImage();
-                    break;
-                case "SpriteRenderer":
-                    component = new SFSpriteRenderer();
-                    break;
-                default:
-                    throw new ArgumentException($"Unknown component type: {typeName}");
-            }
-
+            var component = SFTypeRegistry.Instance.CreateComponent(typeName);
             component.gameObject = this;
-            _components[typeName] = component;
+            _components.Add(component);
             return component;
         }
 
         /// <summary>
-        /// 컴포넌트를 가져옵니다. Unity의 GetComponent&lt;T&gt;()에 해당합니다.
+        /// 정확한 타입 이름으로 컴포넌트를 가져옵니다.
+        /// Unity의 GetComponent&lt;T&gt;()에 해당합니다.
         /// </summary>
-        public SFComponent GetComponent(string typeName)
+        public SFComponent? GetComponent(string typeName)
         {
-            return _components.ContainsKey(typeName) ? _components[typeName] : null;
+            // 정확한 타입 매칭
+            for (int i = 0; i < _components.Count; i++)
+            {
+                if (_components[i].ComponentTypeName == typeName)
+                    return _components[i];
+            }
+
+            // 상속/인터페이스 기반 매칭
+            var registry = SFTypeRegistry.Instance;
+            for (int i = 0; i < _components.Count; i++)
+            {
+                if (registry.IsAssignableTo(_components[i].ComponentTypeName, typeName))
+                    return _components[i];
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 타입 이름, 부모 타입, 또는 인터페이스에 해당하는 모든 컴포넌트를 가져옵니다.
+        /// Unity의 GetComponents&lt;T&gt;()에 해당합니다.
+        /// </summary>
+        public List<SFComponent> GetComponents(string typeName)
+        {
+            var result = new List<SFComponent>();
+            var registry = SFTypeRegistry.Instance;
+
+            for (int i = 0; i < _components.Count; i++)
+            {
+                if (_components[i].ComponentTypeName == typeName ||
+                    registry.IsAssignableTo(_components[i].ComponentTypeName, typeName))
+                {
+                    result.Add(_components[i]);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
         /// 컴포넌트가 있는지 확인합니다.
+        /// 상속/인터페이스 기반 매칭도 지원합니다.
         /// </summary>
         public bool HasComponent(string typeName)
         {
-            return _components.ContainsKey(typeName);
+            return GetComponent(typeName) != null;
         }
 
         /// <summary>
-        /// 컴포넌트를 제거합니다. Unity의 Destroy(component)에 해당합니다.
+        /// 정확한 타입 이름의 첫 번째 컴포넌트를 제거합니다.
+        /// Unity의 Destroy(component)에 해당합니다.
         /// </summary>
         public bool RemoveComponent(string typeName)
         {
-            return _components.Remove(typeName);
+            for (int i = 0; i < _components.Count; i++)
+            {
+                if (_components[i].ComponentTypeName == typeName)
+                {
+                    _components.RemoveAt(i);
+                    return true;
+                }
+            }
+            return false;
         }
+
+        /// <summary>
+        /// 전체 컴포넌트 수를 반환합니다.
+        /// </summary>
+        public int ComponentCount => _components.Count;
 
         public override string ToString() => $"GameObject ({_name}) - Active: {_active}, Components: {_components.Count}";
     }
