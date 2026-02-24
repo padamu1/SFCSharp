@@ -49,7 +49,10 @@ Unity 기반 프로젝트를 위한 C# 스크립팅/모딩 라이브러리입니
 | `UnityEngine.GameObject.GetActive($obj)` | 활성 상태 조회 |
 | `UnityEngine.GameObject.GetTransform($obj)` | Transform 조회 |
 | `UnityEngine.GameObject.AddComponent($obj, 'Text')` | 컴포넌트 추가 |
-| `UnityEngine.GameObject.GetComponent($obj, 'Text')` | 컴포넌트 조회 |
+| `UnityEngine.GameObject.GetComponent($obj, 'Text')` | 컴포넌트 조회 (인터페이스/상속 지원) |
+| `UnityEngine.GameObject.GetComponents($obj, 'IMovable')` | 타입/인터페이스로 다중 컴포넌트 조회 |
+| `UnityEngine.GameObject.HasComponent($obj, 'Text')` | 컴포넌트 존재 여부 확인 |
+| `UnityEngine.GameObject.RemoveComponent($obj, 'Text')` | 컴포넌트 제거 |
 
 #### Transform
 
@@ -149,6 +152,30 @@ Unity 기반 프로젝트를 위한 C# 스크립팅/모딩 라이브러리입니
 | `UnityEngine.UI.Image.SetFillAmount($img, 0.5)` | Fill Amount 설정 |
 | `UnityEngine.UI.Image.GetFillAmount($img)` | Fill Amount 조회 |
 | `UnityEngine.UI.Image.SetEnabled($img, true)` | 활성화/비활성화 |
+
+### SFCSharp 네임스페이스 (타입 시스템)
+
+#### Interface - 인터페이스 정의
+
+| 메서드 | 설명 |
+|--------|------|
+| `SFCSharp.Interface.Define('IMovable')` | 인터페이스 정의 |
+| `SFCSharp.Interface.Define('IFlyable', 'IMovable')` | 부모 인터페이스를 상속하는 인터페이스 정의 |
+| `SFCSharp.Interface.IsDefined('IMovable')` | 인터페이스 존재 여부 확인 |
+
+#### Type - 타입 정의 및 조회
+
+| 메서드 | 설명 |
+|--------|------|
+| `SFCSharp.Type.Define('Enemy', 'Component', 'IMovable')` | 커스텀 타입 정의 (부모 타입 + 인터페이스) |
+| `SFCSharp.Type.DefineProperty('Enemy', 'health', 100)` | 타입에 기본 프로퍼티 추가 |
+| `SFCSharp.Type.Implement('Text', 'IUIElement')` | 기존 타입에 인터페이스 추가 |
+| `SFCSharp.Type.Is($comp, 'IMovable')` | 타입/인터페이스 할당 가능 여부 확인 |
+| `SFCSharp.Type.IsSubclassOf('Enemy', 'Component')` | 상속 관계 확인 |
+| `SFCSharp.Type.ImplementsInterface('Enemy', 'IMovable')` | 인터페이스 구현 여부 확인 |
+| `SFCSharp.Type.GetTypeName($comp)` | 컴포넌트 타입 이름 조회 |
+| `SFCSharp.Type.SetProperty($comp, 'health', 80)` | 커스텀 컴포넌트 프로퍼티 설정 |
+| `SFCSharp.Type.GetProperty($comp, 'health')` | 커스텀 컴포넌트 프로퍼티 조회 |
 
 ### System 네임스페이스
 
@@ -274,7 +301,43 @@ repo.Search("keyword", (results, error) =>
 
 `ISFModRepository` 인터페이스를 구현하여 `UnityWebRequest` 기반의 커스텀 저장소를 만들 수도 있습니다.
 
-### 6. MOD 빌드 (C# → SFCSharp 스크립트 변환)
+### 6. 인터페이스 및 상속
+
+```csharp
+// 인터페이스 정의
+mod.Execute("SFCSharp.Interface.Define('IMovable')");
+mod.Execute("SFCSharp.Interface.Define('IDamageable')");
+mod.Execute("SFCSharp.Interface.Define('IFlyable', 'IMovable')");  // 인터페이스 상속
+
+// 커스텀 타입 정의 (상속 + 인터페이스 구현)
+mod.Execute("SFCSharp.Type.Define('Enemy', 'Component', 'IMovable', 'IDamageable')");
+mod.Execute("SFCSharp.Type.DefineProperty('Enemy', 'health', 100)");
+mod.Execute("SFCSharp.Type.DefineProperty('Enemy', 'speed', 5)");
+
+// 커스텀 컴포넌트 추가
+mod.Execute("UnityEngine.GameObject.AddComponent($go, 'Enemy')");
+
+// 프로퍼티 접근
+mod.Execute("SFCSharp.Type.SetProperty($enemy, 'health', 80)");
+mod.Execute("SFCSharp.Type.GetProperty($enemy, 'health')");
+
+// 타입 체크
+mod.Execute("SFCSharp.Type.Is($enemy, 'IMovable')");           // true
+mod.Execute("SFCSharp.Type.Is($enemy, 'IDamageable')");        // true
+mod.Execute("SFCSharp.Type.IsSubclassOf('Enemy', 'Component')"); // true
+
+// 인터페이스 기반 컴포넌트 조회
+mod.Execute("UnityEngine.GameObject.GetComponent($go, 'IMovable')");
+mod.Execute("UnityEngine.GameObject.GetComponents($go, 'IDamageable')");
+
+// 기존 빌트인 타입에도 인터페이스 적용 가능
+mod.Execute("SFCSharp.Interface.Define('IUIElement')");
+mod.Execute("SFCSharp.Type.Implement('Text', 'IUIElement')");
+mod.Execute("SFCSharp.Type.Implement('Image', 'IUIElement')");
+mod.Execute("UnityEngine.GameObject.GetComponents($go, 'IUIElement')"); // Text + Image 모두 반환
+```
+
+### 7. MOD 빌드 (C# → SFCSharp 스크립트 변환)
 
 `[SFCSharp]` 어트리뷰트를 MonoBehaviour에 추가하면, 빌드 시 자동으로 SFCSharp 스크립트로 변환됩니다.
 
@@ -342,14 +405,21 @@ SFCSharp/
 ├── Context/             # MOD별 변수 저장소 (SFContext)
 ├── Execution/           # 명령어 실행 핸들러
 │   ├── Base/            # 핸들러 추상 클래스
+│   ├── SFCSharpExec/    # SFCSharp 네임스페이스 (Type, Interface)
 │   ├── SystemExec/      # System 네임스페이스 (Console)
 │   └── UnityExec/       # UnityEngine 네임스페이스
 │       └── UnityExecUI/ # UI 컴포넌트 (Text, Image)
+├── TypeSystem/          # 인터페이스/상속 타입 시스템
 ├── Runtime/             # 명령어 파서, 스크립트 실행기
 │   └── ModLoader/       # MOD 로드/관리
 ├── Build/               # 빌드 프로세서
 └── Network/             # MOD 저장소 (업로드/다운로드)
 ```
+
+## 작업 목록
+
+- [ ] DoTween 지원 - 트윈 애니메이션 (Move, Rotate, Scale, Fade, Sequence 등)
+- [ ] Camera 지원 - 카메라 제어 (위치, 회전, FOV, 뷰포트, 렌더링 설정 등)
 
 ## 라이선스
 
